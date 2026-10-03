@@ -48,3 +48,5 @@ backend/uploads/
 
 # Internal planning / spec docs (not for reviewer submission)
 docs/specs/
+docs/ARCHITECTURE.md
+docs/adr/

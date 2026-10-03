@@ -8,11 +8,11 @@ services:
       - ./backend:/app
       - uploads:/app/uploads
     ports:
-      - "5000:5000"
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
-    command: gunicorn -k gevent -w 2 -b 0.0.0.0:5000 app:app
+    command: gunicorn -k gevent -w 2 -b 0.0.0.0:8000 app:app
 
   postgres:
     image: postgres:16-alpine
