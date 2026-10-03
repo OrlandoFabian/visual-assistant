@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://app:app@postgres:5432/visual_assistant
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: gunicorn -k gevent -w 2 -b 0.0.0.0:5000 app:app
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: visual_assistant
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "app"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  uploads:
