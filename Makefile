@@ -13,7 +13,7 @@ lint: ## Ruff lint check
 	docker compose run --rm backend ruff check .
 
 typecheck: ## Mypy type check
-	docker compose run --rm backend mypy app.py
+	docker compose run --rm backend mypy app
 
 migrate: ## Generate a new migration (usage: make migrate m="describe change")
 	docker compose run --rm backend flask db migrate -m "$(m)"
