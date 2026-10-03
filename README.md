@@ -29,14 +29,14 @@ A RESTful API that accepts image uploads, returns an initial AI-generated analys
 cd backend
 pipenv install --dev
 pipenv run python app.py
-# API now at http://localhost:5000/health
+# API now at http://localhost:8000/health
 ```
 
 ### Run with Docker (recommended)
 
 ```bash
 make dev
-# Backend at http://localhost:5000
+# Backend at http://localhost:8000
 # Postgres at localhost:5432 (unused until Q4)
 ```
 
