@@ -2,6 +2,7 @@
 
 from flask import Flask
 
+from app.api.chat import chat_bp
 from app.api.health import health_bp
 from app.api.images import images_bp
 
@@ -9,3 +10,4 @@ from app.api.images import images_bp
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(health_bp)
     app.register_blueprint(images_bp)
+    app.register_blueprint(chat_bp)
