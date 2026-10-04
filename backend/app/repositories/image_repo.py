@@ -36,5 +36,9 @@ class ImageRepository:
         with self._lock:
             return image_id in self._store
 
+    def clear_all(self) -> None:
+        with self._lock:
+            self._store.clear()
+
 
 image_repo = ImageRepository()
