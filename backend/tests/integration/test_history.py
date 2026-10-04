@@ -49,7 +49,12 @@ def test_second_chat_references_prior_turn(client, app, tmp_path):
 
 def test_streaming_saves_assistant_message_to_history(client, app, tmp_path):
     image_id = _upload_image(client, app, tmp_path)
-    client.post(f"/chat-stream/{image_id}", json={"prompt": "stream this"})
+    stream_response = client.post(
+        f"/chat-stream/{image_id}", json={"prompt": "stream this"}
+    )
+    # Fully consume the stream so the generator's finally block runs.
+    # In production, a client (browser, curl -N) always reads the body.
+    stream_response.get_data(as_text=True)
 
     response = client.get(f"/chat/{image_id}/history")
     messages = response.get_json()["messages"]
