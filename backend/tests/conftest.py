@@ -1,5 +1,3 @@
-"""Shared pytest fixtures for the backend test suite."""
-
 import pytest
 
 from app import create_app
@@ -15,3 +13,13 @@ def app():
 @pytest.fixture()
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture(autouse=True)
+def _clear_repos():
+    from app.repositories.history_repo import history_repo
+    from app.repositories.image_repo import image_repo
+
+    image_repo.clear_all()
+    history_repo.clear_all()
+    yield

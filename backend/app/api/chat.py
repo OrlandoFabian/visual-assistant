@@ -1,6 +1,8 @@
 from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 
-from app.services.chat_service import answer_chat, stream_chat
+from app.repositories.history_repo import history_repo
+from app.repositories.image_repo import ImageNotFoundError, image_repo
+from app.services.chat_service import answer_chat, save_assistant_message, stream_chat
 from app.utils.sse import SSE_DONE, format_sse_chunk, format_sse_error, format_sse_retry
 from app.validation.chat import validate_chat_prompt
 
@@ -21,13 +23,23 @@ def chat_stream(image_id: str):
 
     def generate():
         yield format_sse_retry(3000)
+        buffered: list[str] = []
+        completed = False
         try:
             for chunk in stream:
+                content = chunk["choices"][0].get("delta", {}).get("content", "")
+                if content:
+                    buffered.append(content)
                 yield format_sse_chunk(chunk)
             yield SSE_DONE
+            completed = True
         except Exception:
             current_app.logger.exception("stream failed mid-flight")
             yield format_sse_error("stream failed")
+        finally:
+            text = "".join(buffered)
+            if text:
+                save_assistant_message(image_id, text, partial=not completed)
 
     return Response(
         stream_with_context(generate()),
@@ -38,3 +50,25 @@ def chat_stream(image_id: str):
             "Connection": "keep-alive",
         },
     )
+
+
+@chat_bp.get("/chat/<image_id>/history")
+def chat_history(image_id: str):
+    if not image_repo.exists(image_id):
+        raise ImageNotFoundError(image_id)
+
+    messages = history_repo.get_history(image_id)
+    return jsonify(
+        {
+            "image_id": image_id,
+            "messages": [
+                {
+                    "role": m.role,
+                    "content": m.content,
+                    "created_at": m.created_at.isoformat(),
+                    "partial": m.partial,
+                }
+                for m in messages
+            ],
+        }
+    ), 200

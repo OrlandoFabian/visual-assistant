@@ -5,9 +5,11 @@ import time
 from collections.abc import Iterator
 
 
-def mock_openai_chat(prompt: str, image_id: str) -> dict:
+def mock_openai_chat(
+    prompt: str, image_id: str, history: list | None = None
+) -> dict:
     time.sleep(0.2)
-    reply = _compose_reply(prompt, image_id)
+    reply = _compose_reply(prompt, image_id, history)
     prompt_tokens = _estimate_tokens(prompt)
     completion_tokens = _estimate_tokens(reply)
     return {
@@ -30,11 +32,13 @@ def mock_openai_chat(prompt: str, image_id: str) -> dict:
     }
 
 
-def mock_openai_chat_stream(prompt: str, image_id: str) -> Iterator[dict]:
+def mock_openai_chat_stream(
+    prompt: str, image_id: str, history: list | None = None
+) -> Iterator[dict]:
     completion_id = f"chatcmpl-{secrets.token_urlsafe(8)}"
     created = int(time.time())
     model = "mock-gpt-4o"
-    response_text = _compose_reply(prompt, image_id)
+    response_text = _compose_reply(prompt, image_id, history)
 
     yield _chunk(completion_id, created, model, delta={"role": "assistant"})
 
@@ -45,9 +49,11 @@ def mock_openai_chat_stream(prompt: str, image_id: str) -> Iterator[dict]:
     yield _chunk(completion_id, created, model, delta={}, finish_reason="stop")
 
 
-def _compose_reply(prompt: str, image_id: str) -> str:
+def _compose_reply(prompt: str, image_id: str, history: list | None) -> str:
+    turn = (len(history) // 2) + 1 if history else 1
+    prefix = f"[Turn {turn}] " if turn > 1 else ""
     return (
-        f"Regarding image {image_id}: based on the mock vision analysis, "
+        f"{prefix}Regarding image {image_id}: based on the mock vision analysis, "
         f"here is my response to your question. You asked: '{prompt}'. "
         "A real vision-capable model would answer with actual observations "
         "about the image content."
