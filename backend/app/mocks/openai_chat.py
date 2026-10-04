@@ -1,5 +1,8 @@
+import random
+import re
 import secrets
 import time
+from collections.abc import Iterator
 
 
 def mock_openai_chat(prompt: str, image_id: str) -> dict:
@@ -27,6 +30,21 @@ def mock_openai_chat(prompt: str, image_id: str) -> dict:
     }
 
 
+def mock_openai_chat_stream(prompt: str, image_id: str) -> Iterator[dict]:
+    completion_id = f"chatcmpl-{secrets.token_urlsafe(8)}"
+    created = int(time.time())
+    model = "mock-gpt-4o"
+    response_text = _compose_reply(prompt, image_id)
+
+    yield _chunk(completion_id, created, model, delta={"role": "assistant"})
+
+    for token in _tokenize(response_text):
+        time.sleep(random.uniform(0.03, 0.08))
+        yield _chunk(completion_id, created, model, delta={"content": token})
+
+    yield _chunk(completion_id, created, model, delta={}, finish_reason="stop")
+
+
 def _compose_reply(prompt: str, image_id: str) -> str:
     return (
         f"Regarding image {image_id}: based on the mock vision analysis, "
@@ -38,3 +56,29 @@ def _compose_reply(prompt: str, image_id: str) -> str:
 
 def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
+
+
+def _chunk(
+    completion_id: str,
+    created: int,
+    model: str,
+    delta: dict,
+    finish_reason: str | None = None,
+) -> dict:
+    return {
+        "id": completion_id,
+        "object": "chat.completion.chunk",
+        "created": created,
+        "model": model,
+        "choices": [
+            {
+                "index": 0,
+                "delta": delta,
+                "finish_reason": finish_reason,
+            }
+        ],
+    }
+
+
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"\S+\s*|\s+", text)
