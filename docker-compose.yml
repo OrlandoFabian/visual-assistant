@@ -12,7 +12,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: gunicorn -k gevent -w 2 -b 0.0.0.0:8000 app:app
+    command: >
+      sh -c "flask --app app db upgrade &&
+             gunicorn -k gevent -w 2 -b 0.0.0.0:8000 'app:create_app()'"
 
   postgres:
     image: postgres:16-alpine
