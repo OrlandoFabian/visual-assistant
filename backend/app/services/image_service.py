@@ -1,3 +1,4 @@
+import contextlib
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -57,9 +58,7 @@ def delete_image(image_id: str) -> None:
 
     # Best-effort file deletion. The DB record is the source of truth; a
     # missing file is not an error (it may have been cleaned up already).
-    try:
+    with contextlib.suppress(OSError):
         Path(record.file_path).unlink(missing_ok=True)
-    except OSError:
-        pass
 
     image_repo.delete(image_id)
