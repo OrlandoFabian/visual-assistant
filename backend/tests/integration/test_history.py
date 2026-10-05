@@ -13,14 +13,17 @@ def _upload_image(client, app, tmp_path) -> str:
     return response.get_json()["image_id"]
 
 
-def test_history_is_empty_for_fresh_image(client, app, tmp_path):
+def test_history_starts_with_initial_analysis(client, app, tmp_path):
     image_id = _upload_image(client, app, tmp_path)
     response = client.get(f"/chat/{image_id}/history")
 
     assert response.status_code == 200
     body = response.get_json()
     assert body["image_id"] == image_id
-    assert body["messages"] == []
+    assert len(body["messages"]) == 1
+    assert body["messages"][0]["role"] == "assistant"
+    assert body["messages"][0]["partial"] is False
+    assert body["messages"][0]["content"]
 
 
 def test_history_captures_user_and_assistant_messages(client, app, tmp_path):
@@ -31,10 +34,12 @@ def test_history_captures_user_and_assistant_messages(client, app, tmp_path):
     body = response.get_json()
 
     roles = [m["role"] for m in body["messages"]]
-    assert roles == ["user", "assistant"]
-    assert body["messages"][0]["content"] == "what is this?"
-    assert body["messages"][1]["content"]
-    assert body["messages"][1]["partial"] is False
+    # [0] is the initial analysis saved on upload, then the user prompt
+    # and the assistant reply from the chat call.
+    assert roles == ["assistant", "user", "assistant"]
+    assert body["messages"][1]["content"] == "what is this?"
+    assert body["messages"][2]["content"]
+    assert body["messages"][2]["partial"] is False
 
 
 def test_second_chat_references_prior_turn(client, app, tmp_path):
@@ -59,10 +64,10 @@ def test_streaming_saves_assistant_message_to_history(client, app, tmp_path):
     response = client.get(f"/chat/{image_id}/history")
     messages = response.get_json()["messages"]
 
-    assert [m["role"] for m in messages] == ["user", "assistant"]
-    assert messages[0]["content"] == "stream this"
-    assert messages[1]["partial"] is False
-    assert len(messages[1]["content"]) > 0
+    assert [m["role"] for m in messages] == ["assistant", "user", "assistant"]
+    assert messages[1]["content"] == "stream this"
+    assert messages[2]["partial"] is False
+    assert len(messages[2]["content"]) > 0
 
 
 def test_history_returns_404_for_unknown_image(client):
@@ -79,7 +84,9 @@ def test_multiple_chats_accumulate(client, app, tmp_path):
     response = client.get(f"/chat/{image_id}/history")
     messages = response.get_json()["messages"]
 
-    assert len(messages) == 6  # 3 user + 3 assistant
-    assert [m["role"] for m in messages] == [
+    # 1 initial analysis (on upload) + 3 user + 3 assistant
+    assert len(messages) == 7
+    assert messages[0]["role"] == "assistant"
+    assert [m["role"] for m in messages[1:]] == [
         "user", "assistant", "user", "assistant", "user", "assistant",
     ]

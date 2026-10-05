@@ -88,8 +88,9 @@ def test_delete_image_also_removes_chat_history(client, app, tmp_path):
     image_id = _upload(client, app, tmp_path)
     client.post(f"/chat/{image_id}", json={"prompt": "hello"})
 
+    # 1 initial analysis (on upload) + user + assistant
     before = client.get(f"/chat/{image_id}/history").get_json()
-    assert len(before["messages"]) == 2
+    assert len(before["messages"]) == 3
 
     client.delete(f"/images/{image_id}")
 
