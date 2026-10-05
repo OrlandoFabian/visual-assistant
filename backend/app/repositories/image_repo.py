@@ -39,3 +39,15 @@ class InMemoryImageRepository:
     def clear_all(self) -> None:
         with self._lock:
             self._store.clear()
+
+    def list_all(self) -> list[ImageRecord]:
+        with self._lock:
+            return sorted(
+                self._store.values(),
+                key=lambda r: r.uploaded_at,
+                reverse=True,
+            )
+
+    def delete(self, image_id: str) -> None:
+        with self._lock:
+            self._store.pop(image_id, None)

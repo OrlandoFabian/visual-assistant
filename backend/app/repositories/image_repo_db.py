@@ -1,5 +1,7 @@
 from datetime import UTC
 
+from sqlalchemy import select
+
 from app.extensions import db
 from app.models import ImageModel
 from app.repositories.image_repo import ImageRecord
@@ -29,6 +31,21 @@ class DbImageRepository:
 
     def clear_all(self) -> None:
         db.session.query(ImageModel).delete()
+        db.session.commit()
+
+    def list_all(self) -> list[ImageRecord]:
+        stmt = select(ImageModel).order_by(ImageModel.uploaded_at.desc())
+        rows = db.session.scalars(stmt).all()
+        return [self._to_record(m) for m in rows]
+
+    def delete(self, image_id: str) -> None:
+        # session.delete() invokes the ORM-level cascade on the messages
+        # relationship (cascade="all, delete-orphan"), so chat_messages
+        # are removed too without relying on SQLite's FK enforcement.
+        model = db.session.get(ImageModel, image_id)
+        if model is None:
+            return
+        db.session.delete(model)
         db.session.commit()
 
     @staticmethod
