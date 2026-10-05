@@ -1,7 +1,6 @@
 from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 
-from app.repositories.history_repo import history_repo
-from app.repositories.image_repo import ImageNotFoundError, image_repo
+from app.repositories import ImageNotFoundError, history_repo, image_repo
 from app.services.chat_service import answer_chat, save_assistant_message, stream_chat
 from app.utils.sse import SSE_DONE, format_sse_chunk, format_sse_error, format_sse_retry
 from app.validation.chat import validate_chat_prompt

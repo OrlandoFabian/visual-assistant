@@ -71,4 +71,3 @@ class InMemoryHistoryRepository:
         return removed
 
 
-history_repo: HistoryRepository = InMemoryHistoryRepository()

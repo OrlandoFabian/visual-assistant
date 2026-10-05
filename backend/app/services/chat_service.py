@@ -1,8 +1,7 @@
 from collections.abc import Iterator
 
 from app.mocks.openai_chat import mock_openai_chat, mock_openai_chat_stream
-from app.repositories.history_repo import history_repo
-from app.repositories.image_repo import ImageNotFoundError, image_repo
+from app.repositories import ImageNotFoundError, history_repo, image_repo
 
 
 def answer_chat(image_id: str, prompt: str) -> dict:

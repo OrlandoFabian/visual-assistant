@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 
-from app.repositories.image_repo import ImageNotFoundError
+from app.repositories import ImageNotFoundError
 from app.validation.chat import ChatValidationError
 from app.validation.images import ImageValidationError
 
