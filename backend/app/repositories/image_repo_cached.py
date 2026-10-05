@@ -28,6 +28,15 @@ class CachedImageRepository:
         self._backing.clear_all()
         self._cache.clear()
 
+    def list_all(self) -> list[ImageRecord]:
+        # The list changes on every upload and would be stale instantly;
+        # pass through to the backing store rather than cache it.
+        return self._backing.list_all()
+
+    def delete(self, image_id: str) -> None:
+        self._backing.delete(image_id)
+        self._cache.invalidate(image_id)
+
     @property
     def cache_stats(self) -> dict:
         return {

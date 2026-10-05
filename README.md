@@ -1,58 +1,57 @@
-# Visual Assistant API
+# Visual Assistant
 
-A RESTful API that accepts image uploads, returns an initial AI-generated analysis, and supports both standard and streaming chat about each image. Built as the Inkit senior engineering take-home exercise.
+A full-stack take-home exercise for Inkit: a Flask backend that accepts image uploads, returns mocked OpenAI vision analysis, and supports streaming chat with per-image conversation history, plus a React/TypeScript frontend with an interactive demo and API documentation page.
 
-**Status:** Scaffold only.
-
-| Question | Status |
-|---|---|
-| Scaffold (Flask app factory, Docker, CI, tests) | In progress |
-| Q1 — Image upload + non-streaming chat | Not started |
-| Q2 — Server-Sent Events streaming chat | Not started |
-| Q3 — Per-image conversation history | Not started |
-| Q4 — Postgres persistence + migrations + caching | Not started |
-| Frontend demo (React + Tailwind) | Not started |
+![CI](https://github.com/OrlandoFabian/visual-assistant/actions/workflows/ci.yml/badge.svg)
 
 ---
 
 ## Quickstart
 
-### Prerequisites
+### Run the full stack with Docker (recommended)
 
-- Python 3.13
-- [pipenv](https://pipenv.pypa.io/) (`pip install pipenv`)
-- Docker + Docker Compose (for `make dev`)
+```bash
+make dev
+```
 
-### Run locally (without Docker)
+That boots three containers via `docker-compose`:
+
+| Service | URL | Notes |
+|---|---|---|
+| **frontend** | http://localhost:3000 | React + Tailwind, served by nginx. Proxies `/api/*` to the backend. |
+| **backend** | http://localhost:8000 | Flask + gunicorn+gevent (SSE-capable). Runs migrations on boot. |
+| **postgres** | localhost:5432 | Postgres 16, data persisted in a named volume. |
+
+Open http://localhost:3000 to use the app. Open http://localhost:3000/docs for the full API reference.
+
+### Run just the backend without Docker
 
 ```bash
 cd backend
 pipenv install --dev
-pipenv run python app.py
-# API now at http://localhost:8000/health
+pipenv run flask --app app db upgrade   # one-time: creates dev.db SQLite
+pipenv run python run.py                # dev server on :8000
 ```
 
-### Run with Docker (recommended)
+### Run just the frontend without Docker
+
+Requires the backend to be running on `:8000`.
 
 ```bash
-make dev
-# Backend at http://localhost:8000
-# Postgres at localhost:5432 (unused until Q4)
+cd frontend
+npm install
+npm run dev                             # Vite dev server on :5173
 ```
 
-### Run tests
-
-```bash
-make test
-# or, without docker: cd backend && pipenv run pytest
-```
+The Vite dev proxy forwards `/api/*` to the backend, so no CORS setup is needed.
 
 ### Other commands
 
 ```bash
+make test         # pytest in the backend container
 make lint         # ruff
 make typecheck    # mypy
-make clean        # tear down containers and volumes
+make clean        # stop and remove containers + volumes
 ```
 
 ---
@@ -61,34 +60,60 @@ make clean        # tear down containers and volumes
 
 ```
 inkit-visual-assistant/
-├── backend/              Python / Flask API
-│   ├── app.py            Flask app factory + endpoints (grows per question)
+├── backend/                   Python / Flask API
+│   ├── app/
+│   │   ├── api/               Thin HTTP blueprints
+│   │   ├── services/          Business orchestration
+│   │   ├── repositories/      In-memory + DB-backed storage impls
+│   │   ├── validation/        Hand-written request validators
+│   │   ├── mocks/             Simulated OpenAI responses
+│   │   ├── models.py          SQLAlchemy models
+│   │   ├── cache.py           Thread-safe LRU cache
+│   │   └── __init__.py        Flask app factory
+│   ├── migrations/            Alembic versioned schema changes
 │   ├── tests/
+│   │   ├── unit/
+│   │   └── integration/
 │   ├── Dockerfile
-│   ├── Pipfile
-│   ├── pyproject.toml    ruff + mypy config
-│   └── pytest.ini
-├── docker-compose.yml    Backend + Postgres
-├── Makefile              Common commands
-├── .github/workflows/    CI pipeline
-└── docs/                 ARCHITECTURE.md and ADRs
+│   └── Pipfile
+├── frontend/                  React + TypeScript + Tailwind
+│   ├── src/
+│   │   ├── pages/             DemoPage, DocsPage
+│   │   ├── components/        UI building blocks
+│   │   ├── hooks/             useSSE for streaming
+│   │   └── api/               typed fetch wrappers
+│   ├── nginx.conf             reverse-proxies /api/* to backend
+│   └── Dockerfile             multi-stage: Node build → nginx serve
+├── docker-compose.yml         frontend + backend + postgres
+├── Makefile                   common commands
+├── .github/workflows/         CI (ruff + mypy + pytest)
+└── docs/                      ARCHITECTURE.md and ADRs
 ```
 
-Files and folders are added **incrementally per feature branch**, not all at once. The git history shows the architecture emerging under feature pressure (`feat/q1-upload-and-chat`, `feat/q2-sse-streaming`, etc.).
+Each major piece of the system shipped in its own feature branch so the git history reads as a story (`feat/q1-upload-and-chat`, `feat/q2-sse-streaming`, `feat/q3-conversation-history`, `feat/q4-postgres-persistence`, `feat/frontend`).
 
 ---
 
 ## Endpoints
 
-Only `/health` exists in this scaffold. The full endpoint list arrives per question:
-
-| Method | Path | Added in |
+| Method | Path | Purpose |
 |---|---|---|
-| GET | `/health` | Scaffold |
-| POST | `/upload` | Q1 |
-| POST | `/chat/<image_id>` | Q1 |
-| POST | `/chat-stream/<image_id>` | Q2 |
-| GET | `/chat/<image_id>/history` | Q3 |
+| GET  | `/health`                      | Liveness probe |
+| POST | `/upload`                      | Upload image + initial mock vision analysis |
+| POST | `/chat/<image_id>`             | Non-streaming chat (OpenAI `chat.completion` shape) |
+| POST | `/chat-stream/<image_id>`      | Streaming chat via Server-Sent Events |
+| GET  | `/chat/<image_id>/history`     | List conversation history for an image |
+
+Open the API Docs page in the frontend (`/docs`) for request/response shapes, status codes, and copy-pasteable curl examples.
+
+---
+
+## Stack
+
+- **Backend:** Flask 3, SQLAlchemy 2 (via Flask-SQLAlchemy), Alembic (via Flask-Migrate), gunicorn + gevent for prod SSE, Postgres (SQLite for tests and local dev-without-Docker).
+- **Frontend:** React 19, TypeScript 5, Vite 6, Tailwind CSS 4, react-router 7.
+- **Infra:** Docker + docker-compose, nginx reverse proxy, GitHub Actions CI.
+- **Dev tooling:** ruff (lint + format), mypy (gradual typing), pytest + pytest-flask.
 
 ---
 
@@ -97,7 +122,7 @@ Only `/health` exists in this scaffold. The full endpoint list arrives per quest
 Per Inkit's take-home instructions: I used Claude (Anthropic) as a design-review and code-generation collaborator throughout this project. Specifically:
 
 - Design spec and architectural decisions were co-developed through structured brainstorming (five sections, section-by-section approval).
-- Scaffolding files (Dockerfile, docker-compose, Makefile, CI workflow) were drafted with Claude and reviewed line-by-line before commit.
-- Implementation code was written iteratively with Claude as a pair-programmer, with every substantive decision defended in writing (see ADRs).
+- Scaffolding files (Dockerfile, docker-compose, Makefile, CI workflow, Tailwind setup) were drafted with Claude and reviewed line-by-line before commit.
+- Implementation code was written iteratively with Claude as a pair-programmer; every substantive decision was discussed, challenged, and the final choice documented in the commit message or an ADR.
 
-AI was used to accelerate drafting and surface alternatives — not to replace design or architectural reasoning. Every choice in this repository was understood, challenged, and owned before being committed.
+AI was used to accelerate drafting and surface alternatives — not to replace design or architectural reasoning. Every choice in this repository was understood and owned before being committed.
