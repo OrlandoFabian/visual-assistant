@@ -2,6 +2,7 @@ interface Props {
   method: "GET" | "POST" | "PUT" | "DELETE";
 }
 
+
 const COLORS: Record<string, string> = {
   GET: "bg-blue-500/20 text-blue-300 border-blue-700/50",
   POST: "bg-teal-500/20 text-teal-300 border-teal-700/50",

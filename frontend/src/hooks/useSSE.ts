@@ -18,7 +18,7 @@ export interface UseSSE {
   content: string;
   streaming: boolean;
   error: string | null;
-  send: (imageId: string, prompt: string) => Promise<void>;
+  send: (imageId: string, prompt: string) => Promise<string>;
   reset: () => void;
 }
 
@@ -33,9 +33,10 @@ export function useSSE(): UseSSE {
   }, []);
 
   const send = useCallback(
-    async (imageId: string, prompt: string) => {
+    async (imageId: string, prompt: string): Promise<string> => {
       reset();
       setStreaming(true);
+      let fullContent = "";
       try {
         const response = await streamChat(imageId, prompt);
         if (!response.ok) {
@@ -65,7 +66,10 @@ export function useSSE(): UseSSE {
             try {
               const chunk = JSON.parse(data) as StreamChunk;
               const delta = chunk.choices[0]?.delta?.content ?? "";
-              if (delta) setContent((prev) => prev + delta);
+              if (delta) {
+                fullContent += delta;
+                setContent((prev) => prev + delta);
+              }
             } catch {
               // ignore malformed chunk
             }
@@ -76,6 +80,7 @@ export function useSSE(): UseSSE {
       } finally {
         setStreaming(false);
       }
+      return fullContent;
     },
     [reset],
   );

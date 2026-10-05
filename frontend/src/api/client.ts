@@ -37,6 +37,18 @@ export interface HistoryResponse {
   messages: ChatMessage[];
 }
 
+export interface ImageSummary {
+  image_id: string;
+  filename: string;
+  size_bytes: number;
+  mime_type: string;
+  uploaded_at: string;
+}
+
+export interface ImagesListResponse {
+  images: ImageSummary[];
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => null);
@@ -68,6 +80,25 @@ export async function chat(imageId: string, prompt: string): Promise<ChatComplet
 export async function getHistory(imageId: string): Promise<HistoryResponse> {
   const response = await fetch(`${BASE}/chat/${imageId}/history`);
   return parseJson<HistoryResponse>(response);
+}
+
+export async function listImages(): Promise<ImagesListResponse> {
+  const response = await fetch(`${BASE}/images`);
+  return parseJson<ImagesListResponse>(response);
+}
+
+export function imagePreviewUrl(imageId: string): string {
+  return `${BASE}/images/${imageId}/preview`;
+}
+
+export async function deleteImage(imageId: string): Promise<void> {
+  const response = await fetch(`${BASE}/images/${imageId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error?.message ?? "Delete failed");
+  }
 }
 
 export function streamChat(imageId: string, prompt: string): Promise<Response> {

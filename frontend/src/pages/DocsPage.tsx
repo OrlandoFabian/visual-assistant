@@ -4,7 +4,7 @@ import { endpoints } from "../components/docs/endpoints";
 
 export default function DocsPage() {
   return (
-    <div className="space-y-12">
+    <div className="mx-auto max-w-6xl space-y-12 px-6 py-12">
       <header className="space-y-3">
         <h1 className="text-4xl font-semibold tracking-tight">API Documentation</h1>
         <p className="max-w-2xl text-slate-400">

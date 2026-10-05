@@ -78,6 +78,67 @@ file: <binary image data>`,
   -F "file=@/path/to/image.png"`,
   },
   {
+    method: "GET",
+    path: "/images",
+    summary: "List uploaded images",
+    description:
+      "Returns metadata for every image uploaded to the server, newest first. Used by the frontend's past-uploads sidebar to let users revisit prior conversations without re-uploading.",
+    responses: [
+      {
+        status: 200,
+        description: "List of image summaries, newest first",
+        example: `{
+  "images": [
+    {
+      "image_id": "img_abc123",
+      "filename": "sunset.jpg",
+      "size_bytes": 184203,
+      "mime_type": "image/jpeg",
+      "uploaded_at": "2026-10-05T14:22:00+00:00"
+    }
+  ]
+}`,
+      },
+    ],
+    curl: `curl http://localhost:8000/images`,
+  },
+  {
+    method: "DELETE",
+    path: "/images/<image_id>",
+    summary: "Delete an image and its conversation",
+    description:
+      "Removes the image record, deletes the underlying file from disk, and clears the full chat history for that image. The operation is idempotent at the HTTP level: a repeated call returns 404.",
+    responses: [
+      {
+        status: 204,
+        description: "Image, file, and chat history removed",
+      },
+      {
+        status: 404,
+        description: "Image ID not found",
+      },
+    ],
+    curl: `curl -X DELETE http://localhost:8000/images/img_abc123`,
+  },
+  {
+    method: "GET",
+    path: "/images/<image_id>/preview",
+    summary: "Fetch the image file",
+    description:
+      "Streams the raw image bytes back to the client with the original Content-Type. Used for sidebar thumbnails and for showing the image inline when loading a historical conversation.",
+    responses: [
+      {
+        status: 200,
+        description: "Image bytes (Content-Type matches the original upload)",
+      },
+      {
+        status: 404,
+        description: "Image ID not found",
+      },
+    ],
+    curl: `curl -o image.png http://localhost:8000/images/img_abc123/preview`,
+  },
+  {
     method: "POST",
     path: "/chat/<image_id>",
     summary: "Chat about an image",
