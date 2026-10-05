@@ -7,8 +7,8 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-10 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur">
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-950 text-slate-100">
+      <header className="flex-shrink-0 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur">
         <div className="flex items-center justify-between px-6 py-4">
           <NavLink
             to="/"
@@ -45,7 +45,9 @@ export default function Layout({ children }: LayoutProps) {
           </nav>
         </div>
       </header>
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {children}
+      </main>
     </div>
   );
 }
