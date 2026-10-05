@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* Subtle, thin scrollbars across the app.
+   - Transparent track blends with the background
+   - Thumb is a muted slate color that gets slightly more visible on hover */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.25);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.6);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.25) transparent;
+}

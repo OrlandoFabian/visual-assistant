@@ -36,6 +36,12 @@ def upload_image(file: FileStorage | None, upload_folder: str) -> dict:
 
     analysis = mock_openai_vision_analysis(str(file_path))
 
+    # Persist the initial analysis as the first assistant message so it is
+    # included in subsequent chat context and reappears when the user
+    # reloads the conversation from history.
+    analysis_content = analysis["choices"][0]["message"]["content"]
+    history_repo.add_message(image_id, role="assistant", content=analysis_content)
+
     return {
         "image_id": record.id,
         "filename": record.filename,
