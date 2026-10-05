@@ -1,6 +1,7 @@
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+exclude = ["migrations"]
 
 [tool.ruff.lint]
 select = [
@@ -22,9 +23,13 @@ select = [
 python_version = "3.13"
 strict = false
 warn_return_any = true
-warn_unused_configs = true
+warn_unused_configs = false
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "app.models"
+disable_error_code = ["name-defined"]

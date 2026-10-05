@@ -19,7 +19,7 @@ class ImageRecord:
     file_path: str
 
 
-class ImageRepository:
+class InMemoryImageRepository:
     def __init__(self) -> None:
         self._store: dict[str, ImageRecord] = {}
         self._lock = Lock()
@@ -39,6 +39,3 @@ class ImageRepository:
     def clear_all(self) -> None:
         with self._lock:
             self._store.clear()
-
-
-image_repo = ImageRepository()

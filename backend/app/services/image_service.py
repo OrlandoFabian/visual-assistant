@@ -5,7 +5,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 from app.mocks.openai_vision import mock_openai_vision_analysis
-from app.repositories.image_repo import ImageRecord, image_repo
+from app.repositories import ImageRecord, image_repo
 from app.utils.ids import generate_image_id
 from app.validation.images import validate_image
 
