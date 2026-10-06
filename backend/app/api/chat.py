@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 
+from app.extensions import limiter
 from app.repositories import ImageNotFoundError, history_repo, image_repo
 from app.services.chat_service import answer_chat, save_assistant_message, stream_chat
 from app.utils.sse import SSE_DONE, format_sse_error, format_sse_event, format_sse_retry
@@ -9,6 +10,7 @@ chat_bp = Blueprint("chat", __name__)
 
 
 @chat_bp.post("/chat/<image_id>")
+@limiter.limit("60 per minute")
 def chat(image_id: str):
     prompt = validate_chat_prompt(request.get_json(silent=True))
     response = answer_chat(image_id, prompt)
@@ -16,6 +18,7 @@ def chat(image_id: str):
 
 
 @chat_bp.post("/chat-stream/<image_id>")
+@limiter.limit("20 per minute")
 def chat_stream(image_id: str):
     prompt = validate_chat_prompt(request.get_json(silent=True))
     stream = stream_chat(image_id, prompt)

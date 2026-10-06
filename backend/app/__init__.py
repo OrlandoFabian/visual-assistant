@@ -5,7 +5,7 @@ from flask import Flask
 from app.api import register_blueprints
 from app.api.errors import register_error_handlers
 from app.cli import register_cli
-from app.extensions import db, migrate
+from app.extensions import db, limiter, migrate
 
 
 def create_app(config_override: dict | None = None) -> Flask:
@@ -17,12 +17,16 @@ def create_app(config_override: dict | None = None) -> Flask:
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+    app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
     if config_override:
         app.config.update(config_override)
 
     db.init_app(app)
     migrate.init_app(app, db)
+    limiter.init_app(app)
+    if app.config.get("TESTING"):
+        limiter.enabled = False
 
     from app import models  # noqa: F401
 
