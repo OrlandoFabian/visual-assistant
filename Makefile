@@ -1,4 +1,4 @@
-.PHONY: help dev test lint typecheck migrate clean lock
+.PHONY: help dev test lint typecheck migrate clean lock retention-prune
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -20,6 +20,9 @@ migrate: ## Generate a new migration (usage: make migrate m="describe change")
 
 lock: ## Regenerate Pipfile.lock in the backend container
 	docker compose run --rm backend pipenv lock
+
+retention-prune: ## Prune chat history older than N days (usage: make retention-prune days=30)
+	docker compose run --rm backend flask retention prune --days $(days)
 
 clean: ## Stop containers, remove volumes
 	docker compose down -v
