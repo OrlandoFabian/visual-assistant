@@ -2,16 +2,12 @@ import { useCallback, useState } from "react";
 
 import { streamChat } from "../api/client";
 
-interface StreamChunk {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: Array<{
-    index: number;
-    delta: { role?: string; content?: string };
-    finish_reason: string | null;
-  }>;
+interface ResponseOutputTextDelta {
+  type: "response.output_text.delta";
+  item_id: string;
+  output_index: number;
+  content_index: number;
+  delta: string;
 }
 
 export interface UseSSE {
@@ -55,17 +51,34 @@ export function useSSE(): UseSSE {
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+          const chunks = buffer.split("\n\n");
+          buffer = chunks.pop() ?? "";
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6);
-            if (data === "[DONE]") continue;
+          for (const chunk of chunks) {
+            let eventName: string | null = null;
+            let dataLine: string | null = null;
+            for (const line of chunk.split("\n")) {
+              if (line.startsWith("event: ")) eventName = line.slice(7);
+              else if (line.startsWith("data: ")) dataLine = line.slice(6);
+            }
+            if (dataLine === null) continue;
+            if (dataLine === "[DONE]") continue;
+
+            if (eventName === "error") {
+              try {
+                const errPayload = JSON.parse(dataLine);
+                throw new Error(errPayload?.error?.message ?? "Stream failed");
+              } catch (parseErr) {
+                if (parseErr instanceof Error) throw parseErr;
+                throw new Error("Stream failed");
+              }
+            }
+
+            if (eventName !== "response.output_text.delta") continue;
 
             try {
-              const chunk = JSON.parse(data) as StreamChunk;
-              const delta = chunk.choices[0]?.delta?.content ?? "";
+              const payload = JSON.parse(dataLine) as ResponseOutputTextDelta;
+              const delta = payload.delta ?? "";
               if (delta) {
                 fullContent += delta;
                 setContent((prev) => prev + delta);

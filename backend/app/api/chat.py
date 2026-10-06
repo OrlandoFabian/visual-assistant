@@ -2,7 +2,7 @@ from flask import Blueprint, Response, current_app, jsonify, request, stream_wit
 
 from app.repositories import ImageNotFoundError, history_repo, image_repo
 from app.services.chat_service import answer_chat, save_assistant_message, stream_chat
-from app.utils.sse import SSE_DONE, format_sse_chunk, format_sse_error, format_sse_retry
+from app.utils.sse import SSE_DONE, format_sse_error, format_sse_event, format_sse_retry
 from app.validation.chat import validate_chat_prompt
 
 chat_bp = Blueprint("chat", __name__)
@@ -25,11 +25,10 @@ def chat_stream(image_id: str):
         buffered: list[str] = []
         completed = False
         try:
-            for chunk in stream:
-                content = chunk["choices"][0].get("delta", {}).get("content", "")
-                if content:
-                    buffered.append(content)
-                yield format_sse_chunk(chunk)
+            for event, payload in stream:
+                if event == "response.output_text.delta":
+                    buffered.append(payload.get("delta", ""))
+                yield format_sse_event(event, payload)
             yield SSE_DONE
             completed = True
         except Exception:

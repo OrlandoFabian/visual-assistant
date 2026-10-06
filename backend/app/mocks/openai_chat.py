@@ -1,8 +1,9 @@
 import random
-import re
 import secrets
 import time
 from collections.abc import Iterator
+
+from app.mocks.responses import MOCK_MODEL, build_response
 
 
 def mock_openai_chat(
@@ -10,43 +11,62 @@ def mock_openai_chat(
 ) -> dict:
     time.sleep(0.2)
     reply = _compose_reply(prompt, image_id, history)
-    prompt_tokens = _estimate_tokens(prompt)
-    completion_tokens = _estimate_tokens(reply)
-    return {
-        "id": f"chatcmpl-{secrets.token_urlsafe(8)}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": "mock-gpt-4o",
-        "choices": [
-            {
-                "index": 0,
-                "message": {"role": "assistant", "content": reply},
-                "finish_reason": "stop",
-            }
-        ],
-        "usage": {
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-            "total_tokens": prompt_tokens + completion_tokens,
-        },
-    }
+    return build_response(
+        response_id=f"resp_{secrets.token_urlsafe(8)}",
+        message_id=f"msg_{secrets.token_urlsafe(8)}",
+        text=reply,
+        input_tokens=_estimate_tokens(prompt),
+        output_tokens=_estimate_tokens(reply),
+    )
 
 
 def mock_openai_chat_stream(
     prompt: str, image_id: str, history: list | None = None
-) -> Iterator[dict]:
-    completion_id = f"chatcmpl-{secrets.token_urlsafe(8)}"
-    created = int(time.time())
-    model = "mock-gpt-4o"
-    response_text = _compose_reply(prompt, image_id, history)
+) -> Iterator[tuple[str, dict]]:
+    response_id = f"resp_{secrets.token_urlsafe(8)}"
+    message_id = f"msg_{secrets.token_urlsafe(8)}"
+    text = _compose_reply(prompt, image_id, history)
 
-    yield _chunk(completion_id, created, model, delta={"role": "assistant"})
+    yield (
+        "response.created",
+        {
+            "type": "response.created",
+            "response": {
+                "id": response_id,
+                "object": "response",
+                "status": "in_progress",
+                "model": MOCK_MODEL,
+                "output": [],
+            },
+        },
+    )
 
-    for token in _tokenize(response_text):
+    buffered = ""
+    for token in _tokenize(text):
         time.sleep(random.uniform(0.03, 0.08))
-        yield _chunk(completion_id, created, model, delta={"content": token})
+        buffered += token
+        yield (
+            "response.output_text.delta",
+            {
+                "type": "response.output_text.delta",
+                "item_id": message_id,
+                "output_index": 0,
+                "content_index": 0,
+                "delta": token,
+            },
+        )
 
-    yield _chunk(completion_id, created, model, delta={}, finish_reason="stop")
+    completed = build_response(
+        response_id=response_id,
+        message_id=message_id,
+        text=buffered,
+        input_tokens=_estimate_tokens(prompt),
+        output_tokens=_estimate_tokens(buffered),
+    )
+    yield (
+        "response.completed",
+        {"type": "response.completed", "response": completed},
+    )
 
 
 def _compose_reply(prompt: str, image_id: str, history: list | None) -> str:
@@ -64,27 +84,7 @@ def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
-def _chunk(
-    completion_id: str,
-    created: int,
-    model: str,
-    delta: dict,
-    finish_reason: str | None = None,
-) -> dict:
-    return {
-        "id": completion_id,
-        "object": "chat.completion.chunk",
-        "created": created,
-        "model": model,
-        "choices": [
-            {
-                "index": 0,
-                "delta": delta,
-                "finish_reason": finish_reason,
-            }
-        ],
-    }
-
-
 def _tokenize(text: str) -> list[str]:
+    import re
+
     return re.findall(r"\S+\s*|\s+", text)

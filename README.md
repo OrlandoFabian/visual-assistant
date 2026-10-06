@@ -1,6 +1,8 @@
 # Visual Assistant
 
-A full-stack take-home exercise for Inkit: a Flask backend that accepts image uploads, returns mocked OpenAI vision analysis, and supports streaming chat with per-image conversation history, plus a React/TypeScript frontend with an interactive demo and API documentation page.
+A full-stack take-home exercise for Inkit: a Flask backend that accepts image uploads, returns an OpenAI Responses API-shaped vision analysis, and supports streaming chat with per-image conversation history, plus a React/TypeScript frontend with an interactive demo and API documentation page.
+
+The backend uses a local mock that mirrors the OpenAI Responses API wire format exactly — `object: "response"`, `output[].content[].output_text` for payloads, and named Server-Sent Events (`response.created`, `response.output_text.delta`, `response.completed`) for streaming. The intent is that swapping in a real `client.responses.create(...)` call is a drop-in replacement; no consumer code would need to change.
 
 ![CI](https://github.com/OrlandoFabian/visual-assistant/actions/workflows/ci.yml/badge.svg)
 
@@ -66,7 +68,7 @@ inkit-visual-assistant/
 │   │   ├── services/          Business orchestration
 │   │   ├── repositories/      In-memory + DB-backed storage impls
 │   │   ├── validation/        Hand-written request validators
-│   │   ├── mocks/             Simulated OpenAI responses
+│   │   ├── mocks/             Simulated OpenAI Responses API objects
 │   │   ├── models.py          SQLAlchemy models
 │   │   ├── cache.py           Thread-safe LRU cache
 │   │   └── __init__.py        Flask app factory
@@ -100,8 +102,8 @@ Each major piece of the system shipped in its own feature branch so the git hist
 |---|---|---|
 | GET  | `/health`                      | Liveness probe |
 | POST | `/upload`                      | Upload image + initial mock vision analysis |
-| POST | `/chat/<image_id>`             | Non-streaming chat (OpenAI `chat.completion` shape) |
-| POST | `/chat-stream/<image_id>`      | Streaming chat via Server-Sent Events |
+| POST | `/chat/<image_id>`             | Non-streaming chat (OpenAI Responses API shape) |
+| POST | `/chat-stream/<image_id>`      | Streaming chat (named Responses API SSE events) |
 | GET  | `/chat/<image_id>/history`     | List conversation history for an image |
 
 Open the API Docs page in the frontend (`/docs`) for request/response shapes, status codes, and copy-pasteable curl examples.

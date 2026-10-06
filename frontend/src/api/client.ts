@@ -1,20 +1,31 @@
 const BASE = "/api";
 
-export interface ChatCompletion {
+export interface OpenAIResponse {
   id: string;
-  object: "chat.completion";
-  created: number;
+  object: "response";
+  created_at: number;
+  status: "completed" | "in_progress" | "failed";
   model: string;
-  choices: Array<{
-    index: number;
-    message: { role: "assistant"; content: string };
-    finish_reason: string;
+  output: Array<{
+    id: string;
+    type: "message";
+    role: "assistant";
+    status: "completed";
+    content: Array<{
+      type: "output_text";
+      text: string;
+      annotations: unknown[];
+    }>;
   }>;
   usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
+    input_tokens: number;
+    output_tokens: number;
     total_tokens: number;
   };
+}
+
+export function extractText(response: OpenAIResponse): string {
+  return response.output[0]?.content[0]?.text ?? "";
 }
 
 export interface ImageUploadResponse {
@@ -22,7 +33,7 @@ export interface ImageUploadResponse {
   filename: string;
   size_bytes: number;
   uploaded_at: string;
-  analysis: ChatCompletion;
+  analysis: OpenAIResponse;
 }
 
 export interface ChatMessage {
@@ -68,13 +79,13 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   return parseJson<ImageUploadResponse>(response);
 }
 
-export async function chat(imageId: string, prompt: string): Promise<ChatCompletion> {
+export async function chat(imageId: string, prompt: string): Promise<OpenAIResponse> {
   const response = await fetch(`${BASE}/chat/${imageId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt }),
   });
-  return parseJson<ChatCompletion>(response);
+  return parseJson<OpenAIResponse>(response);
 }
 
 export async function getHistory(imageId: string): Promise<HistoryResponse> {
