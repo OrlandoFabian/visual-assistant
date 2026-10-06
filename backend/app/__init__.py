@@ -16,7 +16,13 @@ def create_app(config_override: dict | None = None) -> Flask:
         "DATABASE_URL", "sqlite:///dev.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+    engine_options: dict = {"pool_pre_ping": True}
+    if not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        # SQLite uses StaticPool which rejects these; configure pool
+        # sizing only for real pooled databases (Postgres, MySQL, etc.).
+        engine_options["pool_size"] = 20
+        engine_options["max_overflow"] = 10
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
     app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
     if config_override:

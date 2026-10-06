@@ -16,7 +16,9 @@ def _upload(client, app, tmp_path, filename: str = "pic.png") -> str:
 def test_list_images_empty(client):
     response = client.get("/images")
     assert response.status_code == 200
-    assert response.get_json() == {"images": []}
+    body = response.get_json()
+    assert body["images"] == []
+    assert body["pagination"]["total"] == 0
 
 
 def test_list_images_returns_uploaded(client, app, tmp_path):
@@ -69,7 +71,7 @@ def test_delete_image_returns_204_and_removes_from_list(client, app, tmp_path):
     assert response.status_code == 204
 
     list_response = client.get("/images")
-    assert list_response.get_json() == {"images": []}
+    assert list_response.get_json()["images"] == []
 
 
 def test_delete_image_removes_file_from_disk(client, app, tmp_path):

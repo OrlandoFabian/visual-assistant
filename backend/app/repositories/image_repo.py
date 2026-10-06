@@ -48,6 +48,19 @@ class InMemoryImageRepository:
                 reverse=True,
             )
 
+    def list_page(self, limit: int, offset: int) -> list[ImageRecord]:
+        with self._lock:
+            ordered = sorted(
+                self._store.values(),
+                key=lambda r: r.uploaded_at,
+                reverse=True,
+            )
+            return ordered[offset : offset + limit]
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._store)
+
     def delete(self, image_id: str) -> None:
         with self._lock:
             self._store.pop(image_id, None)

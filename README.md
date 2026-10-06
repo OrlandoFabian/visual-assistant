@@ -159,11 +159,14 @@ Each major piece of the system shipped in its own feature branch so the git hist
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET  | `/health`                      | Liveness probe |
-| POST | `/upload`                      | Upload image + initial mock vision analysis |
-| POST | `/chat/<image_id>`             | Non-streaming chat (OpenAI Responses API shape) |
-| POST | `/chat-stream/<image_id>`      | Streaming chat (named Responses API SSE events) |
-| GET  | `/chat/<image_id>/history`     | List conversation history for an image |
+| GET  | `/health`                               | Liveness probe |
+| POST | `/upload`                               | Upload image + initial mock vision analysis |
+| POST | `/chat/<image_id>`                      | Non-streaming chat (OpenAI Responses API shape) |
+| POST | `/chat-stream/<image_id>`               | Streaming chat (named Responses API SSE events) |
+| GET  | `/chat/<image_id>/history?limit=&offset=` | Paginated conversation history |
+| GET  | `/images?limit=&offset=`                | Paginated image list |
+
+Pagination defaults: `limit=50`, max `200`, `offset=0`. Responses include a `pagination: { total, limit, offset }` block alongside the data array.
 
 Open the API Docs page in the frontend (`/docs`) for request/response shapes, status codes, and copy-pasteable curl examples.
 

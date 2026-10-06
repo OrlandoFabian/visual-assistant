@@ -20,6 +20,12 @@ class HistoryRepository(Protocol):
 
     def get_history(self, image_id: str) -> list[ChatMessage]: ...
 
+    def get_history_page(
+        self, image_id: str, limit: int, offset: int
+    ) -> list[ChatMessage]: ...
+
+    def count_history(self, image_id: str) -> int: ...
+
     def clear(self, image_id: str) -> None: ...
 
     def clear_all(self) -> None: ...
@@ -48,6 +54,16 @@ class InMemoryHistoryRepository:
     def get_history(self, image_id: str) -> list[ChatMessage]:
         with self._lock:
             return list(self._data[image_id])
+
+    def get_history_page(
+        self, image_id: str, limit: int, offset: int
+    ) -> list[ChatMessage]:
+        with self._lock:
+            return list(self._data[image_id])[offset : offset + limit]
+
+    def count_history(self, image_id: str) -> int:
+        with self._lock:
+            return len(self._data[image_id])
 
     def clear(self, image_id: str) -> None:
         with self._lock:
