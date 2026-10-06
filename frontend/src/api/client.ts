@@ -52,7 +52,6 @@ export interface Pagination {
 export interface HistoryResponse {
   image_id: string;
   messages: ChatMessage[];
-  pagination: Pagination;
 }
 
 export interface ImageSummary {

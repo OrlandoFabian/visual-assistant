@@ -5,7 +5,6 @@ from app.repositories import ImageNotFoundError, history_repo, image_repo
 from app.services.chat_service import answer_chat, save_assistant_message, stream_chat
 from app.utils.sse import SSE_DONE, format_sse_error, format_sse_event, format_sse_retry
 from app.validation.chat import validate_chat_prompt
-from app.validation.pagination import parse_pagination
 
 chat_bp = Blueprint("chat", __name__)
 
@@ -59,11 +58,7 @@ def chat_history(image_id: str):
     if not image_repo.exists(image_id):
         raise ImageNotFoundError(image_id)
 
-    page = parse_pagination(request.args)
-    messages = history_repo.get_history_page(
-        image_id, limit=page.limit, offset=page.offset
-    )
-    total = history_repo.count_history(image_id)
+    messages = history_repo.get_history(image_id)
     return jsonify(
         {
             "image_id": image_id,
@@ -76,10 +71,5 @@ def chat_history(image_id: str):
                 }
                 for m in messages
             ],
-            "pagination": {
-                "total": total,
-                "limit": page.limit,
-                "offset": page.offset,
-            },
         }
     ), 200
