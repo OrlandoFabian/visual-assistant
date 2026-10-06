@@ -16,6 +16,11 @@ def create_app(config_override: dict | None = None) -> Flask:
         "DATABASE_URL", "sqlite:///dev.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    # Validate pooled connections before use so stale/dropped sockets
+    # (idle timeouts on load balancers, Postgres restarts) are detected
+    # and recycled transparently rather than surfacing as a 500 on the
+    # first unlucky request.
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 
     if config_override:
         app.config.update(config_override)
