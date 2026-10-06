@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { type ImageSummary, listImages } from "../api/client";
+import Pagination from "./Pagination";
+
+const PAGE_SIZE = 20;
 
 interface Props {
   activeImageId: string | null;
@@ -18,17 +21,25 @@ export default function ImageSidebar({
   onDelete,
 }: Props) {
   const [images, setImages] = useState<ImageSummary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+   useEffect(() => {
+    setCurrentPage(1);
+  }, [refreshKey]);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    listImages()
+    const offset = (currentPage - 1) * PAGE_SIZE;
+    listImages(PAGE_SIZE, offset)
       .then((r) => {
         if (!cancelled) {
           setImages(r.images);
+          setTotal(r.pagination.total);
           setError(null);
         }
       })
@@ -43,7 +54,15 @@ export default function ImageSidebar({
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, currentPage]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  useEffect(() => {
+    if (!loading && images.length === 0 && currentPage > 1) {
+      setCurrentPage((p) => p - 1);
+    }
+  }, [loading, images.length, currentPage]);
 
   const handleDelete = async (img: ImageSummary) => {
     const confirmed = window.confirm(
@@ -117,6 +136,12 @@ export default function ImageSidebar({
           </ul>
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </aside>
   );
 }
