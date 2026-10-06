@@ -48,9 +48,6 @@ class DbImageRepository:
         return int(db.session.scalar(select(func.count()).select_from(ImageModel)) or 0)
 
     def delete(self, image_id: str) -> None:
-        # session.delete() invokes the ORM-level cascade on the messages
-        # relationship (cascade="all, delete-orphan"), so chat_messages
-        # are removed too without relying on SQLite's FK enforcement.
         model = db.session.get(ImageModel, image_id)
         if model is None:
             return

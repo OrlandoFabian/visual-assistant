@@ -25,8 +25,6 @@ class CachedImageRepository:
         return self.get(image_id) is not None
 
     def list_all(self) -> list[ImageRecord]:
-        # The list changes on every upload and would be stale instantly;
-        # pass through to the backing store rather than cache it.
         return self._backing.list_all()
 
     def list_page(self, limit: int, offset: int) -> list[ImageRecord]:
