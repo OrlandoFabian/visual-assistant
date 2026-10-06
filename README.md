@@ -57,6 +57,22 @@ make retention-prune days=30    # delete chat messages older than 30 days
 make clean                      # stop and remove containers + volumes
 ```
 
+### Logging + request correlation
+
+Every HTTP request gets a `request_id` (a uuid4 hex, or whatever the client sent as `X-Request-ID`). The ID surfaces three ways:
+
+1. **Response header** `X-Request-ID` — support can ask a user "paste the request ID from your network tab" to find the exact server-side logs.
+2. **Every log line** — the structured JSON log entry carries `request_id` so a `grep "<id>"` returns the full server trace for one HTTP call.
+3. **Flask `g.request_id`** — services and views can attach it to downstream calls or structured logs.
+
+The app logs to stdout as one-line JSON (configured in `backend/app/logging_config.py`), so Docker/Loki/CloudWatch/Datadog ingest without regex:
+
+```json
+{"timestamp":"2026-10-06T17:08:38.124568+00:00","level":"ERROR","logger":"app","message":"stream failed mid-flight","request_id":"8ecc62d4e2874368a9ba5d18d59b9c61","exception":"Traceback..."}
+```
+
+Logging is intentionally disabled under `TESTING` so pytest output stays readable.
+
 ### Rate limiting
 
 Per-IP rate limits are enforced via Flask-Limiter:
@@ -159,11 +175,14 @@ Each major piece of the system shipped in its own feature branch so the git hist
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET  | `/health`                      | Liveness probe |
-| POST | `/upload`                      | Upload image + initial mock vision analysis |
-| POST | `/chat/<image_id>`             | Non-streaming chat (OpenAI Responses API shape) |
-| POST | `/chat-stream/<image_id>`      | Streaming chat (named Responses API SSE events) |
-| GET  | `/chat/<image_id>/history`     | List conversation history for an image |
+| GET  | `/health`                               | Liveness probe |
+| POST | `/upload`                               | Upload image + initial mock vision analysis |
+| POST | `/chat/<image_id>`                      | Non-streaming chat (OpenAI Responses API shape) |
+| POST | `/chat-stream/<image_id>`               | Streaming chat (named Responses API SSE events) |
+| GET  | `/chat/<image_id>/history?limit=&offset=` | Paginated conversation history |
+| GET  | `/images?limit=&offset=`                | Paginated image list |
+
+Pagination defaults: `limit=50`, max `200`, `offset=0`. Responses include a `pagination: { total, limit, offset }` block alongside the data array.
 
 Open the API Docs page in the frontend (`/docs`) for request/response shapes, status codes, and copy-pasteable curl examples.
 

@@ -5,6 +5,7 @@ from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 from app.repositories import ImageNotFoundError
 from app.validation.chat import ChatValidationError
 from app.validation.images import ImageValidationError
+from app.validation.pagination import PaginationError
 
 
 def register_error_handlers(app: Flask) -> None:
@@ -14,6 +15,10 @@ def register_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(ChatValidationError)
     def _handle_chat_validation(e: ChatValidationError):
+        return _error_response(e.message, e.code, e.status)
+
+    @app.errorhandler(PaginationError)
+    def _handle_pagination(e: PaginationError):
         return _error_response(e.message, e.code, e.status)
 
     @app.errorhandler(ImageNotFoundError)

@@ -10,4 +10,4 @@ COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 EXPOSE 8000
-CMD ["gunicorn", "-k", "gevent", "-w", "2", "-b", "0.0.0.0:8000", "app:create_app()"]
+CMD ["gunicorn", "-k", "gevent", "-w", "2", "--max-requests", "1000", "--max-requests-jitter", "100", "-b", "0.0.0.0:8000", "app:create_app()"]

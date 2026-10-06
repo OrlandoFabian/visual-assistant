@@ -5,6 +5,7 @@ from flask import Blueprint, current_app, jsonify, request, send_file
 from app.extensions import limiter
 from app.repositories import ImageNotFoundError, image_repo
 from app.services.image_service import delete_image, upload_image
+from app.validation.pagination import parse_pagination
 
 images_bp = Blueprint("images", __name__)
 
@@ -20,7 +21,9 @@ def upload():
 
 @images_bp.get("/images")
 def list_images():
-    records = image_repo.list_all()
+    page = parse_pagination(request.args)
+    records = image_repo.list_page(limit=page.limit, offset=page.offset)
+    total = image_repo.count()
     return jsonify(
         {
             "images": [
@@ -32,7 +35,12 @@ def list_images():
                     "uploaded_at": r.uploaded_at.isoformat(),
                 }
                 for r in records
-            ]
+            ],
+            "pagination": {
+                "total": total,
+                "limit": page.limit,
+                "offset": page.offset,
+            },
         }
     ), 200
 

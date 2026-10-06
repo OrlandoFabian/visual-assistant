@@ -1,6 +1,6 @@
 from datetime import UTC
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.extensions import db
 from app.models import ImageModel
@@ -37,6 +37,19 @@ class DbImageRepository:
         stmt = select(ImageModel).order_by(ImageModel.uploaded_at.desc())
         rows = db.session.scalars(stmt).all()
         return [self._to_record(m) for m in rows]
+
+    def list_page(self, limit: int, offset: int) -> list[ImageRecord]:
+        stmt = (
+            select(ImageModel)
+            .order_by(ImageModel.uploaded_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        rows = db.session.scalars(stmt).all()
+        return [self._to_record(m) for m in rows]
+
+    def count(self) -> int:
+        return int(db.session.scalar(select(func.count()).select_from(ImageModel)) or 0)
 
     def delete(self, image_id: str) -> None:
         # session.delete() invokes the ORM-level cascade on the messages

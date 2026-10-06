@@ -43,9 +43,16 @@ export interface ChatMessage {
   partial: boolean;
 }
 
+export interface Pagination {
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export interface HistoryResponse {
   image_id: string;
   messages: ChatMessage[];
+  pagination: Pagination;
 }
 
 export interface ImageSummary {
@@ -58,6 +65,7 @@ export interface ImageSummary {
 
 export interface ImagesListResponse {
   images: ImageSummary[];
+  pagination: Pagination;
 }
 
 async function parseJson<T>(response: Response): Promise<T> {

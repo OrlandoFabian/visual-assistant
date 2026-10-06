@@ -33,6 +33,12 @@ class CachedImageRepository:
         # pass through to the backing store rather than cache it.
         return self._backing.list_all()
 
+    def list_page(self, limit: int, offset: int) -> list[ImageRecord]:
+        return self._backing.list_page(limit, offset)
+
+    def count(self) -> int:
+        return self._backing.count()
+
     def delete(self, image_id: str) -> None:
         self._backing.delete(image_id)
         self._cache.invalidate(image_id)

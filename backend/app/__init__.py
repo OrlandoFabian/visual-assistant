@@ -1,11 +1,13 @@
 import os
+import uuid
 
-from flask import Flask
+from flask import Flask, Response, g, request
 
 from app.api import register_blueprints
 from app.api.errors import register_error_handlers
 from app.cli import register_cli
 from app.extensions import db, limiter, migrate
+from app.logging_config import configure_logging
 
 
 def create_app(config_override: dict | None = None) -> Flask:
@@ -16,7 +18,11 @@ def create_app(config_override: dict | None = None) -> Flask:
         "DATABASE_URL", "sqlite:///dev.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+    engine_options: dict = {"pool_pre_ping": True}
+    if not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        engine_options["pool_size"] = 20
+        engine_options["max_overflow"] = 10
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
     app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
     if config_override:
@@ -33,4 +39,31 @@ def create_app(config_override: dict | None = None) -> Flask:
     register_blueprints(app)
     register_error_handlers(app)
     register_cli(app)
+    _register_request_id(app)
+
+    if not app.config.get("TESTING"):
+        # Keep test logs quiet / stdlib-formatted so pytest output stays
+        # readable; JSON logging is a production concern.
+        configure_logging(app)
+
     return app
+
+
+def _register_request_id(app: Flask) -> None:
+    """Attach a request_id to flask.g and the response header.
+
+    Honors a client-supplied X-Request-ID (useful when a frontend/edge
+    proxy already generates one) and otherwise mints a new uuid4.
+    """
+
+    @app.before_request
+    def _assign_request_id() -> None:
+        incoming = request.headers.get("X-Request-ID")
+        g.request_id = incoming if incoming else uuid.uuid4().hex
+
+    @app.after_request
+    def _echo_request_id(response: Response) -> Response:
+        rid = getattr(g, "request_id", None)
+        if rid:
+            response.headers["X-Request-ID"] = rid
+        return response
