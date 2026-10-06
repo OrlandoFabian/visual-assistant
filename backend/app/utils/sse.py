@@ -4,8 +4,8 @@ from typing import Any
 SSE_DONE = "data: [DONE]\n\n"
 
 
-def format_sse_chunk(payload: dict[str, Any]) -> str:
-    return f"data: {json.dumps(payload)}\n\n"
+def format_sse_event(event: str, payload: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(payload)}\n\n"
 
 
 def format_sse_error(message: str, code: str = "server_error") -> str:
@@ -16,7 +16,7 @@ def format_sse_error(message: str, code: str = "server_error") -> str:
             "code": code,
         }
     }
-    return f"data: {json.dumps(error)}\n\n"
+    return f"event: error\ndata: {json.dumps(error)}\n\n"
 
 
 def format_sse_retry(ms: int) -> str:

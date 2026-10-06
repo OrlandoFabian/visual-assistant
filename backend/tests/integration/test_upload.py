@@ -18,8 +18,12 @@ def test_upload_returns_201_with_image_id_and_analysis(client, tmp_path, app):
     assert body["filename"] == "sunset.png"
     assert body["size_bytes"] > 0
     assert "uploaded_at" in body
-    assert body["analysis"]["object"] == "chat.completion"
-    assert body["analysis"]["choices"][0]["message"]["role"] == "assistant"
+    assert body["analysis"]["object"] == "response"
+    assert body["analysis"]["status"] == "completed"
+    message = body["analysis"]["output"][0]
+    assert message["role"] == "assistant"
+    assert message["content"][0]["type"] == "output_text"
+    assert message["content"][0]["text"]
 
 
 def test_upload_rejects_missing_file(client):

@@ -6,6 +6,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 from app.mocks.openai_vision import mock_openai_vision_analysis
+from app.mocks.responses import extract_text
 from app.repositories import ImageNotFoundError, ImageRecord, history_repo, image_repo
 from app.utils.ids import generate_image_id
 from app.validation.images import validate_image
@@ -13,7 +14,7 @@ from app.validation.images import validate_image
 
 def upload_image(file: FileStorage | None, upload_folder: str) -> dict:
     mime_type = validate_image(file)
-    assert file is not None  # validate_image raises if file is None
+    assert file is not None
 
     image_id = generate_image_id()
     original_name = secure_filename(file.filename or "") or "unnamed"
@@ -36,11 +37,9 @@ def upload_image(file: FileStorage | None, upload_folder: str) -> dict:
 
     analysis = mock_openai_vision_analysis(str(file_path))
 
-    # Persist the initial analysis as the first assistant message so it is
-    # included in subsequent chat context and reappears when the user
-    # reloads the conversation from history.
-    analysis_content = analysis["choices"][0]["message"]["content"]
-    history_repo.add_message(image_id, role="assistant", content=analysis_content)
+    history_repo.add_message(
+        image_id, role="assistant", content=extract_text(analysis)
+    )
 
     return {
         "image_id": record.id,
@@ -56,14 +55,8 @@ def delete_image(image_id: str) -> None:
     if record is None:
         raise ImageNotFoundError(image_id)
 
-    # Clear any chat history for this image.
-    # For the DB repo this is redundant (session.delete cascades), but it
-    # keeps the in-memory repo consistent and avoids leaking history rows
-    # if the ORM cascade is ever reconfigured.
     history_repo.clear(image_id)
 
-    # Best-effort file deletion. The DB record is the source of truth; a
-    # missing file is not an error (it may have been cleaned up already).
     with contextlib.suppress(OSError):
         Path(record.file_path).unlink(missing_ok=True)
 

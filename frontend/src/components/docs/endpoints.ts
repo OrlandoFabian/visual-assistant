@@ -23,7 +23,7 @@ export const endpoints: Endpoint[] = [
     path: "/upload",
     summary: "Upload image",
     description:
-      "Accepts an image file (PNG, JPG, JPEG, or GIF, up to 16 MB). Validates the file type by sniffing magic bytes (not just the extension) and rejects renamed or malformed files. Stores the file on disk, records metadata, and returns an initial mocked vision analysis.",
+      "Accepts an image file (PNG, JPG, JPEG, or GIF, up to 16 MB). Validates the file type by sniffing magic bytes (not just the extension) and rejects renamed or malformed files. Stores the file on disk, records metadata, and returns an initial mocked vision analysis in the OpenAI Responses API shape.",
     request: {
       contentType: "multipart/form-data",
       description: "Attach the image as a form field named 'file'.",
@@ -40,21 +40,25 @@ file: <binary image data>`,
   "size_bytes": 184203,
   "uploaded_at": "2026-10-04T12:00:00+00:00",
   "analysis": {
-    "id": "chatcmpl-xyz789",
-    "object": "chat.completion",
-    "created": 1759493200,
+    "id": "resp_xyz789",
+    "object": "response",
+    "created_at": 1759493200,
+    "status": "completed",
     "model": "mock-gpt-4o",
-    "choices": [{
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "The image shows..."
-      },
-      "finish_reason": "stop"
+    "output": [{
+      "id": "msg_abc",
+      "type": "message",
+      "role": "assistant",
+      "status": "completed",
+      "content": [{
+        "type": "output_text",
+        "text": "The image shows...",
+        "annotations": []
+      }]
     }],
     "usage": {
-      "prompt_tokens": 42,
-      "completion_tokens": 68,
+      "input_tokens": 42,
+      "output_tokens": 68,
       "total_tokens": 110
     }
   }
@@ -153,23 +157,27 @@ file: <binary image data>`,
     responses: [
       {
         status: 200,
-        description: "OpenAI chat.completion-shaped response",
+        description: "OpenAI Responses API object",
         example: `{
-  "id": "chatcmpl-xyz789",
-  "object": "chat.completion",
-  "created": 1759493200,
+  "id": "resp_xyz789",
+  "object": "response",
+  "created_at": 1759493200,
+  "status": "completed",
   "model": "mock-gpt-4o",
-  "choices": [{
-    "index": 0,
-    "message": {
-      "role": "assistant",
-      "content": "..."
-    },
-    "finish_reason": "stop"
+  "output": [{
+    "id": "msg_abc",
+    "type": "message",
+    "role": "assistant",
+    "status": "completed",
+    "content": [{
+      "type": "output_text",
+      "text": "...",
+      "annotations": []
+    }]
   }],
   "usage": {
-    "prompt_tokens": 42,
-    "completion_tokens": 68,
+    "input_tokens": 42,
+    "output_tokens": 68,
     "total_tokens": 110
   }
 }`,
@@ -192,7 +200,7 @@ file: <binary image data>`,
     path: "/chat-stream/<image_id>",
     summary: "Streaming chat (Server-Sent Events)",
     description:
-      "Same as /chat but streams the response as SSE. Each chunk matches OpenAI's chat.completion.chunk format. If the client disconnects mid-stream, the partial response is captured and saved to history with partial=true, keeping server state consistent with what the user saw on screen.",
+      "Same as /chat but streams the response as named Server-Sent Events matching OpenAI's Responses API streaming protocol (response.created, response.output_text.delta, response.completed). If the client disconnects mid-stream, the partial response is captured and saved to history with partial=true, keeping server state consistent with what the user saw on screen.",
     request: {
       contentType: "application/json",
       example: `{
@@ -202,14 +210,20 @@ file: <binary image data>`,
     responses: [
       {
         status: 200,
-        description: "text/event-stream of chat.completion.chunk events",
+        description: "text/event-stream of Responses API events",
         example: `retry: 3000
 
-data: {"id":"chatcmpl-x","object":"chat.completion.chunk","created":1759493200,"model":"mock-gpt-4o","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+event: response.created
+data: {"type":"response.created","response":{"id":"resp_x","object":"response","status":"in_progress","model":"mock-gpt-4o","output":[]}}
 
-data: {"id":"chatcmpl-x","object":"chat.completion.chunk","created":1759493200,"model":"mock-gpt-4o","choices":[{"index":0,"delta":{"content":"The"},"finish_reason":null}]}
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","item_id":"msg_x","output_index":0,"content_index":0,"delta":"The"}
 
-data: {"id":"chatcmpl-x","object":"chat.completion.chunk","created":1759493200,"model":"mock-gpt-4o","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","item_id":"msg_x","output_index":0,"content_index":0,"delta":" image"}
+
+event: response.completed
+data: {"type":"response.completed","response":{"id":"resp_x","object":"response","status":"completed","model":"mock-gpt-4o","output":[{"id":"msg_x","type":"message","role":"assistant","status":"completed","content":[{"type":"output_text","text":"The image...","annotations":[]}]}],"usage":{"input_tokens":10,"output_tokens":20,"total_tokens":30}}}
 
 data: [DONE]`,
       },

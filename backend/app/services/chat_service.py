@@ -1,6 +1,7 @@
 from collections.abc import Iterator
 
 from app.mocks.openai_chat import mock_openai_chat, mock_openai_chat_stream
+from app.mocks.responses import extract_text
 from app.repositories import ImageNotFoundError, history_repo, image_repo
 
 
@@ -12,13 +13,14 @@ def answer_chat(image_id: str, prompt: str) -> dict:
     history_repo.add_message(image_id, role="user", content=prompt)
 
     response = mock_openai_chat(prompt, image_id, history=history)
-    assistant_text = response["choices"][0]["message"]["content"]
-    history_repo.add_message(image_id, role="assistant", content=assistant_text)
+    history_repo.add_message(
+        image_id, role="assistant", content=extract_text(response)
+    )
 
     return response
 
 
-def stream_chat(image_id: str, prompt: str) -> Iterator[dict]:
+def stream_chat(image_id: str, prompt: str) -> Iterator[tuple[str, dict]]:
     if not image_repo.exists(image_id):
         raise ImageNotFoundError(image_id)
 

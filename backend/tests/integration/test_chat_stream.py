@@ -15,16 +15,24 @@ def _upload_image(client, app, tmp_path) -> str:
 
 
 def _parse_sse(text: str) -> list:
+    """Parse SSE named-event stream into a list of (event, payload) tuples.
+
+    Returns the literal string "[DONE]" for the sentinel line.
+    """
     events: list = []
+    current_event: str | None = None
     for line in text.split("\n"):
         line = line.rstrip()
-        if not line.startswith("data: "):
+        if line.startswith("event: "):
+            current_event = line[len("event: "):]
             continue
-        data = line[len("data: "):]
-        if data == "[DONE]":
-            events.append("[DONE]")
-        else:
-            events.append(json.loads(data))
+        if line.startswith("data: "):
+            data = line[len("data: "):]
+            if data == "[DONE]":
+                events.append("[DONE]")
+            else:
+                events.append((current_event, json.loads(data)))
+            current_event = None
     return events
 
 
@@ -38,32 +46,33 @@ def test_stream_returns_text_event_stream(client, app, tmp_path):
     assert response.headers["X-Accel-Buffering"] == "no"
 
 
-def test_stream_emits_openai_chunk_shape(client, app, tmp_path):
+def test_stream_emits_openai_responses_event_shape(client, app, tmp_path):
     image_id = _upload_image(client, app, tmp_path)
     response = client.post(f"/chat-stream/{image_id}", json={"prompt": "hi"})
     events = _parse_sse(response.get_data(as_text=True))
 
-    first = events[0]
-    assert isinstance(first, dict)
-    assert first["object"] == "chat.completion.chunk"
-    assert first["choices"][0]["delta"] == {"role": "assistant"}
+    first_event, first_payload = events[0]
+    assert first_event == "response.created"
+    assert first_payload["type"] == "response.created"
+    assert first_payload["response"]["status"] == "in_progress"
 
     assert events[-1] == "[DONE]"
 
-    terminal = events[-2]
-    assert isinstance(terminal, dict)
-    assert terminal["choices"][0]["finish_reason"] == "stop"
+    terminal_event, terminal_payload = events[-2]
+    assert terminal_event == "response.completed"
+    assert terminal_payload["response"]["status"] == "completed"
+    assert terminal_payload["response"]["output"][0]["content"][0]["type"] == "output_text"
 
 
-def test_stream_concatenated_content_echoes_prompt(client, app, tmp_path):
+def test_stream_concatenated_deltas_echo_prompt(client, app, tmp_path):
     image_id = _upload_image(client, app, tmp_path)
     response = client.post(f"/chat-stream/{image_id}", json={"prompt": "hello"})
     events = _parse_sse(response.get_data(as_text=True))
 
     text = "".join(
-        e["choices"][0]["delta"].get("content", "")
-        for e in events
-        if isinstance(e, dict)
+        payload.get("delta", "")
+        for event, payload in (e for e in events if isinstance(e, tuple))
+        if event == "response.output_text.delta"
     )
     assert "hello" in text
     assert len(text) > 0

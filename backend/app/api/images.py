@@ -40,8 +40,6 @@ def image_preview(image_id: str):
     record = image_repo.get(image_id)
     if record is None:
         raise ImageNotFoundError(image_id)
-    # Record may exist with a stale file_path (e.g. file deleted from disk,
-    # upload folder moved). 404 cleanly instead of letting send_file 500.
     if not Path(record.file_path).exists():
         raise ImageNotFoundError(image_id)
     return send_file(record.file_path, mimetype=record.mime_type)

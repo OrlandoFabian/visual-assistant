@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   chat,
   deleteImage,
+  extractText,
   getHistory,
   type ImageSummary,
   imagePreviewUrl,
@@ -54,7 +55,7 @@ export default function DemoPage() {
     try {
       const response = await uploadImage(file);
       setImageId(response.image_id);
-      const initialContent = response.analysis.choices[0]?.message.content;
+      const initialContent = extractText(response.analysis);
       if (initialContent) {
         setMessages([{ role: "assistant", content: initialContent }]);
       }
@@ -136,7 +137,7 @@ export default function DemoPage() {
         ...prev,
         {
           role: "assistant",
-          content: result.choices[0]?.message?.content ?? "",
+          content: extractText(result),
         },
       ]);
     } catch (e) {

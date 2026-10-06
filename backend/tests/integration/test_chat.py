@@ -20,9 +20,13 @@ def test_chat_returns_openai_shaped_response(client, app, tmp_path):
 
     assert response.status_code == 200
     body = response.get_json()
-    assert body["object"] == "chat.completion"
-    assert body["choices"][0]["message"]["role"] == "assistant"
-    assert body["choices"][0]["message"]["content"]
+    assert body["object"] == "response"
+    assert body["status"] == "completed"
+    message = body["output"][0]
+    assert message["type"] == "message"
+    assert message["role"] == "assistant"
+    assert message["content"][0]["type"] == "output_text"
+    assert message["content"][0]["text"]
     assert body["usage"]["total_tokens"] > 0
 
 

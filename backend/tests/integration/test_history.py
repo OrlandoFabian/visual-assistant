@@ -48,7 +48,7 @@ def test_second_chat_references_prior_turn(client, app, tmp_path):
     response = client.post(f"/chat/{image_id}", json={"prompt": "second question"})
 
     body = response.get_json()
-    content = body["choices"][0]["message"]["content"]
+    content = body["output"][0]["content"][0]["text"]
     assert "[Turn 2]" in content
 
 
