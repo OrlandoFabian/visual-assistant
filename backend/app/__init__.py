@@ -16,6 +16,7 @@ def create_app(config_override: dict | None = None) -> Flask:
         "DATABASE_URL", "sqlite:///dev.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 
     if config_override:
         app.config.update(config_override)
