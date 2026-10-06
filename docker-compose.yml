@@ -10,7 +10,7 @@ services:
     build: ./backend
     environment:
       FLASK_ENV: development
-      DATABASE_URL: postgresql://app:app@postgres:5432/visual_assistant
+      DATABASE_URL: postgresql+psycopg://app:app@postgres:5432/visual_assistant
     volumes:
       - ./backend:/app
       - uploads:/app/uploads

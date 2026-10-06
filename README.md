@@ -50,11 +50,55 @@ The Vite dev proxy forwards `/api/*` to the backend, so no CORS setup is needed.
 ### Other commands
 
 ```bash
-make test         # pytest in the backend container
-make lint         # ruff
-make typecheck    # mypy
-make clean        # stop and remove containers + volumes
+make test                       # pytest in the backend container
+make lint                       # ruff
+make typecheck                  # mypy
+make retention-prune days=30    # delete chat messages older than 30 days
+make clean                      # stop and remove containers + volumes
 ```
+
+### Chat history retention
+
+Chat history grows over time. We ship a reusable Flask CLI command that an
+operator (not the Flask app itself) can run on a schedule:
+
+```bash
+flask retention prune --days 30
+# Removed 142 chat message(s) older than 30 day(s).
+```
+
+The command lives in `backend/app/cli.py`. We deliberately did **not** wire
+it into the Flask process: scheduled background work belongs with the ops
+layer, not inside the request-handling worker. Depending on how you deploy,
+pick one of:
+
+```cron
+# Linux cron: /etc/cron.d/visual-assistant-retention
+0 2 * * *  app  cd /opt/visual-assistant && flask retention prune --days 30
+```
+
+```yaml
+# Kubernetes CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: visual-assistant-retention
+spec:
+  schedule: "0 2 * * *"          # 02:00 UTC daily
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: retention
+            image: visual-assistant-backend:latest
+            command: ["flask", "retention", "prune", "--days", "30"]
+          restartPolicy: OnFailure
+```
+
+Image deletions already cascade to their chat history via a Postgres
+`ON DELETE CASCADE` on the `chat_messages.image_id` foreign key, so this
+job only has to collect orphan-free rows that have simply aged out.
 
 ---
 

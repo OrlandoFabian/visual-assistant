@@ -13,7 +13,7 @@ export default function DropZone({ isUploading, error, onAttach }: Props) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];

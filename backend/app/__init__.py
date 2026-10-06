@@ -4,6 +4,7 @@ from flask import Flask
 
 from app.api import register_blueprints
 from app.api.errors import register_error_handlers
+from app.cli import register_cli
 from app.extensions import db, migrate
 
 
@@ -26,4 +27,5 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     register_blueprints(app)
     register_error_handlers(app)
+    register_cli(app)
     return app
