@@ -28,8 +28,6 @@ class HistoryRepository(Protocol):
 
     def clear(self, image_id: str) -> None: ...
 
-    def clear_all(self) -> None: ...
-
     def delete_older_than(self, days: int) -> int: ...
 
 
@@ -68,10 +66,6 @@ class InMemoryHistoryRepository:
     def clear(self, image_id: str) -> None:
         with self._lock:
             self._data.pop(image_id, None)
-
-    def clear_all(self) -> None:
-        with self._lock:
-            self._data.clear()
 
     def delete_older_than(self, days: int) -> int:
         cutoff = datetime.now(UTC) - timedelta(days=days)

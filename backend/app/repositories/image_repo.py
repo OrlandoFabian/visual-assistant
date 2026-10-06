@@ -36,10 +36,6 @@ class InMemoryImageRepository:
         with self._lock:
             return image_id in self._store
 
-    def clear_all(self) -> None:
-        with self._lock:
-            self._store.clear()
-
     def list_all(self) -> list[ImageRecord]:
         with self._lock:
             return sorted(

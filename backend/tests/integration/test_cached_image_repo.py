@@ -40,14 +40,3 @@ def test_cold_get_misses_then_warm_get_hits(app):
         assert cached.cache_stats["hits"] == 1
 
 
-def test_clear_all_resets_the_cache(app):
-    with app.app_context():
-        repo = CachedImageRepository(DbImageRepository())
-        repo.save(_record("img_c"))
-        repo.get("img_c")
-
-        repo.clear_all()
-
-        assert repo.cache_stats["size"] == 0
-        assert repo.cache_stats["hits"] == 0
-        assert repo.cache_stats["misses"] == 0

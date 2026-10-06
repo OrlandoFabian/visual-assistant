@@ -29,10 +29,6 @@ class DbImageRepository:
     def exists(self, image_id: str) -> bool:
         return db.session.get(ImageModel, image_id) is not None
 
-    def clear_all(self) -> None:
-        db.session.query(ImageModel).delete()
-        db.session.commit()
-
     def list_all(self) -> list[ImageRecord]:
         stmt = select(ImageModel).order_by(ImageModel.uploaded_at.desc())
         rows = db.session.scalars(stmt).all()

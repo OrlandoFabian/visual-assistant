@@ -57,10 +57,6 @@ class DbHistoryRepository:
         )
         db.session.commit()
 
-    def clear_all(self) -> None:
-        db.session.query(ChatMessageModel).delete()
-        db.session.commit()
-
     def delete_older_than(self, days: int) -> int:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         result = db.session.execute(

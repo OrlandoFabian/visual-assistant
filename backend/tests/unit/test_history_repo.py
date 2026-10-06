@@ -49,15 +49,6 @@ def test_clear_removes_image_history():
     assert repo.get_history("img_1") == []
 
 
-def test_clear_all_wipes_everything():
-    repo = InMemoryHistoryRepository()
-    repo.add_message("img_1", "user", "hi")
-    repo.add_message("img_2", "user", "hi")
-    repo.clear_all()
-    assert repo.get_history("img_1") == []
-    assert repo.get_history("img_2") == []
-
-
 def test_delete_older_than_removes_old_messages():
     repo = InMemoryHistoryRepository()
     stale = ChatMessage(
