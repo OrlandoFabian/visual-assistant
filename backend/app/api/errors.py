@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask_limiter.errors import RateLimitExceeded
 from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 
 from app.repositories import ImageNotFoundError
@@ -29,6 +30,14 @@ def register_error_handlers(app: Flask) -> None:
             "file exceeds the 16MB upload limit",
             "file_too_large",
             413,
+        )
+
+    @app.errorhandler(RateLimitExceeded)
+    def _handle_rate_limited(e: RateLimitExceeded):
+        return _error_response(
+            f"rate limit exceeded: {e.description}",
+            "rate_limit_exceeded",
+            429,
         )
 
     @app.errorhandler(404)

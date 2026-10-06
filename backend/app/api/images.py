@@ -2,6 +2,7 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request, send_file
 
+from app.extensions import limiter
 from app.repositories import ImageNotFoundError, image_repo
 from app.services.image_service import delete_image, upload_image
 
@@ -9,6 +10,7 @@ images_bp = Blueprint("images", __name__)
 
 
 @images_bp.post("/upload")
+@limiter.limit("10 per minute")
 def upload():
     file = request.files.get("file")
     upload_folder = current_app.config["UPLOAD_FOLDER"]

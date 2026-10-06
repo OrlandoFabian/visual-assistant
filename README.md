@@ -57,6 +57,21 @@ make retention-prune days=30    # delete chat messages older than 30 days
 make clean                      # stop and remove containers + volumes
 ```
 
+### Rate limiting
+
+Per-IP rate limits are enforced via Flask-Limiter:
+
+| Endpoint | Limit |
+|---|---|
+| `/upload` | 10 / minute |
+| `/chat/<id>` | 60 / minute |
+| `/chat-stream/<id>` | 20 / minute |
+| global default (all endpoints) | 200 / minute |
+
+Clients get standard `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `Retry-After` headers on every response so they can back off before hitting a 429. When a limit is exceeded the response is a consistent `429 rate_limit_exceeded` envelope.
+
+Storage defaults to in-memory, which is fine for a single-instance deployment. To share limits across multiple backend workers or instances, set `RATELIMIT_STORAGE_URI=redis://redis:6379` as an env var — Flask-Limiter will transparently use Redis.
+
 ### Chat history retention
 
 Chat history grows over time. We ship a reusable Flask CLI command that an
