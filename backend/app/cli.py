@@ -23,12 +23,6 @@ retention_cli = AppGroup("retention", help="Chat-history retention commands.")
     help="Delete chat messages older than this many days.",
 )
 def prune(days: int) -> None:
-    """Remove chat messages older than --days days.
-
-    Intended to be invoked on a schedule (cron, Kubernetes CronJob, etc.)
-    rather than from the Flask app itself. Prints the row count removed so
-    the scheduler can log it.
-    """
     if days < 1:
         raise click.BadParameter("--days must be >= 1")
 

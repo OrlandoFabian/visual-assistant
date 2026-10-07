@@ -42,8 +42,6 @@ def create_app(config_override: dict | None = None) -> Flask:
     _register_request_id(app)
 
     if not app.config.get("TESTING"):
-        # Keep test logs quiet / stdlib-formatted so pytest output stays
-        # readable; JSON logging is a production concern.
         configure_logging(app)
 
     return app
