@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 
-import EndpointCard from "../EndpointCard";
-import { endpoints } from "../endpoints";
+import EndpointCard from "../components/EndpointCard";
+import { endpoints } from "../docs-content/endpoints";
 
 export default function EndpointPage() {
   const { slug } = useParams<{ slug: string }>();
