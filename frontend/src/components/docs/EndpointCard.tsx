@@ -3,6 +3,7 @@ import MethodBadge from "./MethodBadge";
 import StatusBadge from "./StatusBadge";
 
 export interface Endpoint {
+  slug: string;
   method: "GET" | "POST" | "DELETE";
   path: string;
   summary: string;
