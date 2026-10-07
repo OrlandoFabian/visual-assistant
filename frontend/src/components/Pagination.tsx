@@ -5,8 +5,6 @@ interface Props {
 }
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: Props) {
-  if (totalPages <= 1) return null;
-
   const pages = buildPageList(currentPage, totalPages);
   const canPrev = currentPage > 1;
   const canNext = currentPage < totalPages;

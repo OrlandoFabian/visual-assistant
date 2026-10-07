@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { type ImageSummary, listImages } from "../api/client";
 import Pagination from "./Pagination";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 interface Props {
   activeImageId: string | null;
