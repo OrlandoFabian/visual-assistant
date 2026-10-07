@@ -1,4 +1,5 @@
 import os
+import time
 import uuid
 
 from flask import Flask, Response, g, request
@@ -48,20 +49,27 @@ def create_app(config_override: dict | None = None) -> Flask:
 
 
 def _register_request_id(app: Flask) -> None:
-    """Attach a request_id to flask.g and the response header.
-
-    Honors a client-supplied X-Request-ID (useful when a frontend/edge
-    proxy already generates one) and otherwise mints a new uuid4.
-    """
 
     @app.before_request
     def _assign_request_id() -> None:
         incoming = request.headers.get("X-Request-ID")
         g.request_id = incoming if incoming else uuid.uuid4().hex
+        g.request_start_ms = time.monotonic()
 
     @app.after_request
-    def _echo_request_id(response: Response) -> Response:
+    def _finish_request(response: Response) -> Response:
         rid = getattr(g, "request_id", None)
         if rid:
             response.headers["X-Request-ID"] = rid
+        start = getattr(g, "request_start_ms", None)
+        duration_ms = round((time.monotonic() - start) * 1000, 1) if start else None
+        app.logger.info(
+            "request",
+            extra={
+                "method": request.method,
+                "path": request.path,
+                "status": response.status_code,
+                "duration_ms": duration_ms,
+            },
+        )
         return response
