@@ -1,20 +1,14 @@
 import CodeBlock from "../CodeBlock";
+import DocHeader from "../DocHeader";
 
 export default function Logging() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Concepts
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Logging</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          The backend emits one JSON object per log line to stdout. Container
-          log collectors (docker, CloudWatch, Loki, Datadog) ingest the lines
-          without regex, and every entry carries a request_id so a single
-          HTTP call can be grepped end-to-end.
-        </p>
-      </header>
+      <DocHeader
+        category="Concepts"
+        title="Logging"
+        lead="The backend emits one JSON object per log line to stdout. Container log collectors (docker, CloudWatch, Loki, Datadog) ingest the lines without regex, and every entry carries a request_id so a single HTTP call can be grepped end-to-end."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Shape</h2>

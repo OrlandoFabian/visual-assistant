@@ -1,8 +1,5 @@
 @import "tailwindcss";
 
-/* Subtle, thin scrollbars across the app.
-   - Transparent track blends with the background
-   - Thumb is a muted slate color that gets slightly more visible on hover */
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;

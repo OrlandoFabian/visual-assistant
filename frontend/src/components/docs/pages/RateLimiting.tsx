@@ -1,20 +1,14 @@
 import CodeBlock from "../CodeBlock";
+import DocHeader from "../DocHeader";
 
 export default function RateLimiting() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Concepts
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Rate limiting</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          Per-IP rate limits protect every write endpoint from flooding.
-          Standard <code className="font-mono">X-RateLimit-*</code> headers
-          advertise remaining quota on every response so well-behaved clients
-          can back off before hitting a 429.
-        </p>
-      </header>
+      <DocHeader
+        category="Concepts"
+        title="Rate limiting"
+        lead="Per-IP rate limits protect every write endpoint from flooding. Standard X-RateLimit-* headers advertise remaining quota on every response so well-behaved clients can back off before hitting a 429."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Limits</h2>

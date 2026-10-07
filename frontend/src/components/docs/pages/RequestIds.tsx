@@ -1,19 +1,14 @@
 import CodeBlock from "../CodeBlock";
+import DocHeader from "../DocHeader";
 
 export default function RequestIds() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Concepts
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Request IDs</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          Every request gets a unique ID — like a ticket number at a busy
-          counter — that follows it through every log line it produces. One
-          grep returns the full story for one user interaction.
-        </p>
-      </header>
+      <DocHeader
+        category="Concepts"
+        title="Request IDs"
+        lead="Every request gets a unique ID — like a ticket number at a busy counter — that follows it through every log line it produces. One grep returns the full story for one user interaction."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">How it works</h2>

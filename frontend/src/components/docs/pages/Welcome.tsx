@@ -1,19 +1,15 @@
 import { Link } from "react-router-dom";
 
+import DocHeader from "../DocHeader";
+
 export default function Welcome() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Getting Started
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Welcome</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          Visual Assistant is a full-stack reference implementation of an
-          image-aware chat API. Upload an image, get an initial analysis, and
-          hold a back-and-forth conversation about it with streaming replies.
-        </p>
-      </header>
+      <DocHeader
+        category="Getting Started"
+        title="Welcome"
+        lead="Visual Assistant is a full-stack reference implementation of an image-aware chat API. Upload an image, get an initial analysis, and hold a back-and-forth conversation about it with streaming replies."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">What it does</h2>

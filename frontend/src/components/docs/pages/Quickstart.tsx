@@ -1,17 +1,14 @@
 import CodeBlock from "../CodeBlock";
+import DocHeader from "../DocHeader";
 
 export default function Quickstart() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Getting Started
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Quickstart</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          From a fresh clone of the repository to a running UI in three commands.
-        </p>
-      </header>
+      <DocHeader
+        category="Getting Started"
+        title="Quickstart"
+        lead="From a fresh clone of the repository to a running UI in three commands."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Prerequisite</h2>

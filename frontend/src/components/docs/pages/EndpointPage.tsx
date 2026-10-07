@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 
+import DocHeader from "../DocHeader";
 import EndpointCard from "../EndpointCard";
 import { endpoints } from "../endpoints";
 
@@ -24,14 +25,7 @@ export default function EndpointPage() {
 
   return (
     <article className="space-y-6">
-      <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Endpoint
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {endpoint.summary}
-        </h1>
-      </header>
+      <DocHeader category="Endpoint" title={endpoint.summary} />
       <EndpointCard endpoint={endpoint} />
     </article>
   );

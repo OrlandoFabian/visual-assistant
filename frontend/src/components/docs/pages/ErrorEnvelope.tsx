@@ -1,19 +1,14 @@
 import CodeBlock from "../CodeBlock";
+import DocHeader from "../DocHeader";
 
 export default function ErrorEnvelope() {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-          Concepts
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Error envelope</h1>
-        <p className="text-lg leading-relaxed text-slate-300">
-          Every error response — validation failure, rate limit, unknown image —
-          returns the same JSON shape, modeled after OpenAI&apos;s own error
-          format. Clients only need one parser.
-        </p>
-      </header>
+      <DocHeader
+        category="Concepts"
+        title="Error envelope"
+        lead="Every error response — validation failure, rate limit, unknown image — returns the same JSON shape, modeled after OpenAI’s own error format. Clients only need one parser."
+      />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Shape</h2>
