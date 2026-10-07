@@ -6,6 +6,15 @@ A full-stack reference app that accepts image uploads, returns an OpenAI Respons
 
 ---
 
+## Get the code
+
+```bash
+git clone https://github.com/OrlandoFabian/visual-assistant.git
+cd visual-assistant
+```
+
+---
+
 ## Run it
 
 Two options — pick whichever matches what you already have installed.
