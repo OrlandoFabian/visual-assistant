@@ -58,29 +58,3 @@ def test_images_rejects_negative_offset(client):
     assert res.get_json()["error"]["code"] == "invalid_pagination"
 
 
-# -----------------------
-# /chat/<id>/history pagination
-# -----------------------
-
-
-def test_history_pagination_includes_total(client, app, tmp_path):
-    image_id = _upload(client, app, tmp_path, "pic.png")
-    for i in range(3):
-        client.post(f"/chat/{image_id}", json={"prompt": f"q{i}"})
-
-    res = client.get(f"/chat/{image_id}/history")
-    body = res.get_json()
-    # 1 initial analysis + 3 user prompts + 3 assistant replies
-    assert body["pagination"]["total"] == 7
-    assert len(body["messages"]) == 7
-
-
-def test_history_explicit_limit_offset(client, app, tmp_path):
-    image_id = _upload(client, app, tmp_path, "pic.png")
-    for i in range(3):
-        client.post(f"/chat/{image_id}", json={"prompt": f"q{i}"})
-
-    res = client.get(f"/chat/{image_id}/history?limit=2&offset=1")
-    body = res.get_json()
-    assert len(body["messages"]) == 2
-    assert body["pagination"] == {"total": 7, "limit": 2, "offset": 1}

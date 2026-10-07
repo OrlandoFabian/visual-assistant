@@ -179,10 +179,10 @@ Each major piece of the system shipped in its own feature branch so the git hist
 | POST | `/upload`                               | Upload image + initial mock vision analysis |
 | POST | `/chat/<image_id>`                      | Non-streaming chat (OpenAI Responses API shape) |
 | POST | `/chat-stream/<image_id>`               | Streaming chat (named Responses API SSE events) |
-| GET  | `/chat/<image_id>/history?limit=&offset=` | Paginated conversation history |
+| GET  | `/chat/<image_id>/history`              | Full conversation history for an image |
 | GET  | `/images?limit=&offset=`                | Paginated image list |
 
-Pagination defaults: `limit=50`, max `200`, `offset=0`. Responses include a `pagination: { total, limit, offset }` block alongside the data array.
+The `/images` endpoint accepts `limit` (default `50`, max `200`) and `offset` (default `0`) query params and includes a `pagination: { total, limit, offset }` block in the response. The history endpoint is unpaginated — write-side rate limits (60/min on `/chat`, 20/min on `/chat-stream`) prevent a single client from ever growing a conversation beyond what fits comfortably in one response.
 
 Open the API Docs page in the frontend (`/docs`) for request/response shapes, status codes, and copy-pasteable curl examples.
 

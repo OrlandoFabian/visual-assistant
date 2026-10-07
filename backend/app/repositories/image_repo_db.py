@@ -29,10 +29,6 @@ class DbImageRepository:
     def exists(self, image_id: str) -> bool:
         return db.session.get(ImageModel, image_id) is not None
 
-    def clear_all(self) -> None:
-        db.session.query(ImageModel).delete()
-        db.session.commit()
-
     def list_all(self) -> list[ImageRecord]:
         stmt = select(ImageModel).order_by(ImageModel.uploaded_at.desc())
         rows = db.session.scalars(stmt).all()
@@ -52,9 +48,6 @@ class DbImageRepository:
         return int(db.session.scalar(select(func.count()).select_from(ImageModel)) or 0)
 
     def delete(self, image_id: str) -> None:
-        # session.delete() invokes the ORM-level cascade on the messages
-        # relationship (cascade="all, delete-orphan"), so chat_messages
-        # are removed too without relying on SQLite's FK enforcement.
         model = db.session.get(ImageModel, image_id)
         if model is None:
             return

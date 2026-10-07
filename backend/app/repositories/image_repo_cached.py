@@ -24,13 +24,7 @@ class CachedImageRepository:
     def exists(self, image_id: str) -> bool:
         return self.get(image_id) is not None
 
-    def clear_all(self) -> None:
-        self._backing.clear_all()
-        self._cache.clear()
-
     def list_all(self) -> list[ImageRecord]:
-        # The list changes on every upload and would be stale instantly;
-        # pass through to the backing store rather than cache it.
         return self._backing.list_all()
 
     def list_page(self, limit: int, offset: int) -> list[ImageRecord]:

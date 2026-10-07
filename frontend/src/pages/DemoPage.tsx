@@ -27,7 +27,7 @@ export default function DemoPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [mode, setMode] = useState<Mode>("stream");
+  const [mode, setMode] = useState<Mode>("complete");
   const [error, setError] = useState<string | null>(null);
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const stream = useSSE();

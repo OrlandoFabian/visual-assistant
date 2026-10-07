@@ -5,7 +5,6 @@ Emits one JSON object per log line to stdout so container log collectors
 line carries a request_id when one is in scope, so a single HTTP request
 can be grep'd end-to-end across layers.
 
-Zero third-party dependencies — just the stdlib.
 """
 
 from __future__ import annotations
@@ -18,7 +17,6 @@ from typing import Any
 
 from flask import Flask, g, has_request_context
 
-# Keys we always want in a log line, in a stable order for grep/jq ergonomics.
 _BASE_KEYS = ("timestamp", "level", "logger", "message", "request_id")
 
 
@@ -35,7 +33,6 @@ class JsonFormatter(logging.Formatter):
         }
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
-        # Any extras attached via logger.info("x", extra={"foo": 1})
         for key, value in record.__dict__.items():
             if key in payload or key.startswith("_"):
                 continue
@@ -48,7 +45,6 @@ class JsonFormatter(logging.Formatter):
             ):
                 continue
             payload[key] = value
-        # Reorder base keys first for consistent reading.
         ordered = {k: payload[k] for k in _BASE_KEYS if k in payload}
         ordered.update({k: v for k, v in payload.items() if k not in ordered})
         return json.dumps(ordered, default=str)

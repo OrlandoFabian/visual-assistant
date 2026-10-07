@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, select
 
 from app.extensions import db
 from app.models import ChatMessageModel
@@ -30,35 +30,10 @@ class DbHistoryRepository:
         rows = db.session.scalars(stmt).all()
         return [self._to_message(r) for r in rows]
 
-    def get_history_page(
-        self, image_id: str, limit: int, offset: int
-    ) -> list[ChatMessage]:
-        stmt = (
-            select(ChatMessageModel)
-            .where(ChatMessageModel.image_id == image_id)
-            .order_by(ChatMessageModel.created_at.asc())
-            .limit(limit)
-            .offset(offset)
-        )
-        rows = db.session.scalars(stmt).all()
-        return [self._to_message(r) for r in rows]
-
-    def count_history(self, image_id: str) -> int:
-        stmt = (
-            select(func.count())
-            .select_from(ChatMessageModel)
-            .where(ChatMessageModel.image_id == image_id)
-        )
-        return int(db.session.scalar(stmt) or 0)
-
     def clear(self, image_id: str) -> None:
         db.session.execute(
             delete(ChatMessageModel).where(ChatMessageModel.image_id == image_id)
         )
-        db.session.commit()
-
-    def clear_all(self) -> None:
-        db.session.query(ChatMessageModel).delete()
         db.session.commit()
 
     def delete_older_than(self, days: int) -> int:

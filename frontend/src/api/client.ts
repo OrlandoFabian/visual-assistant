@@ -52,7 +52,6 @@ export interface Pagination {
 export interface HistoryResponse {
   image_id: string;
   messages: ChatMessage[];
-  pagination: Pagination;
 }
 
 export interface ImageSummary {
@@ -101,8 +100,15 @@ export async function getHistory(imageId: string): Promise<HistoryResponse> {
   return parseJson<HistoryResponse>(response);
 }
 
-export async function listImages(): Promise<ImagesListResponse> {
-  const response = await fetch(`${BASE}/images`);
+export async function listImages(
+  limit = 50,
+  offset = 0,
+): Promise<ImagesListResponse> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  const response = await fetch(`${BASE}/images?${params}`);
   return parseJson<ImagesListResponse>(response);
 }
 
