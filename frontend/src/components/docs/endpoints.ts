@@ -2,6 +2,7 @@ import type { Endpoint } from "./EndpointCard";
 
 export const endpoints: Endpoint[] = [
   {
+    slug: "health",
     method: "GET",
     path: "/health",
     summary: "Health check",
@@ -19,6 +20,7 @@ export const endpoints: Endpoint[] = [
     curl: `curl http://localhost:8000/health`,
   },
   {
+    slug: "upload",
     method: "POST",
     path: "/upload",
     summary: "Upload image",
@@ -82,6 +84,7 @@ file: <binary image data>`,
   -F "file=@/path/to/image.png"`,
   },
   {
+    slug: "list-images",
     method: "GET",
     path: "/images",
     summary: "List uploaded images",
@@ -107,6 +110,7 @@ file: <binary image data>`,
     curl: `curl http://localhost:8000/images`,
   },
   {
+    slug: "delete-image",
     method: "DELETE",
     path: "/images/<image_id>",
     summary: "Delete an image and its conversation",
@@ -125,6 +129,7 @@ file: <binary image data>`,
     curl: `curl -X DELETE http://localhost:8000/images/img_abc123`,
   },
   {
+    slug: "image-preview",
     method: "GET",
     path: "/images/<image_id>/preview",
     summary: "Fetch the image file",
@@ -143,6 +148,7 @@ file: <binary image data>`,
     curl: `curl -o image.png http://localhost:8000/images/img_abc123/preview`,
   },
   {
+    slug: "chat",
     method: "POST",
     path: "/chat/<image_id>",
     summary: "Chat about an image",
@@ -196,6 +202,7 @@ file: <binary image data>`,
   -d '{"prompt":"What is this image about?"}'`,
   },
   {
+    slug: "chat-stream",
     method: "POST",
     path: "/chat-stream/<image_id>",
     summary: "Streaming chat (Server-Sent Events)",
@@ -241,6 +248,7 @@ data: [DONE]`,
   -d '{"prompt":"What is this?"}'`,
   },
   {
+    slug: "chat-history",
     method: "GET",
     path: "/chat/<image_id>/history",
     summary: "Get conversation history",
