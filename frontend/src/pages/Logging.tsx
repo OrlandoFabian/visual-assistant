@@ -1,4 +1,4 @@
-import CodeBlock from "../CodeBlock";
+import CodeBlock from "../components/CodeBlock";
 
 export default function Logging() {
   return (

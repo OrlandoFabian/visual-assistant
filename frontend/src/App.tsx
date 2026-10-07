@@ -1,15 +1,15 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import DocsLayout from "./components/DocsLayout";
 import Layout from "./components/Layout";
-import DocsLayout from "./components/docs/DocsLayout";
-import EndpointPage from "./components/docs/pages/EndpointPage";
-import ErrorEnvelope from "./components/docs/pages/ErrorEnvelope";
-import Logging from "./components/docs/pages/Logging";
-import Quickstart from "./components/docs/pages/Quickstart";
-import RateLimiting from "./components/docs/pages/RateLimiting";
-import RequestIds from "./components/docs/pages/RequestIds";
-import Welcome from "./components/docs/pages/Welcome";
 import DemoPage from "./pages/DemoPage";
+import EndpointPage from "./pages/EndpointPage";
+import ErrorEnvelope from "./pages/ErrorEnvelope";
+import Logging from "./pages/Logging";
+import Quickstart from "./pages/Quickstart";
+import RateLimiting from "./pages/RateLimiting";
+import RequestIds from "./pages/RequestIds";
+import Welcome from "./pages/Welcome";
 
 export default function App() {
   return (

@@ -1,4 +1,4 @@
-import type { Endpoint } from "./EndpointCard";
+import type { Endpoint } from "../components/EndpointCard";
 
 export const endpoints: Endpoint[] = [
   {

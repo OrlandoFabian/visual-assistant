@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 
-import { sections } from "./sections";
+import { sections } from "../docs-content/sections";
 
 export default function DocsLayout() {
   return (
